@@ -33,10 +33,10 @@ class Metric:
                                 hist.append(line)
 
                         hist_data = pd.read_csv(StringIO("\n".join(hist)), sep="\t")
-                        fun = Function(operator, operand)
-                        tab_data = fun(hist_data)
-                        if len(tab_data.columns) < 2:
+                        if set(operand["columns"]) != {1, 2}:
                             return f"Incorrect columns specified in the config file."
+                        fun = Function(operator, {"columns": [1, 2]})
+                        tab_data = fun(hist_data)
                         peak_data = tab_data.iloc[:, 1]
                         max_peak_idx = peak_data.idxmax()
                         max_peak = tab_data.iloc[:, 0].iloc[max_peak_idx]
