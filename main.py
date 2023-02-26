@@ -1,3 +1,6 @@
+from colorama import just_fix_windows_console
+
+just_fix_windows_console()
 from termcolor import colored
 from metric import Metric
 
@@ -13,6 +16,7 @@ def process_metric(metric):
         for operator in metric_functions["function"]:
             operand = metric_functions["function"][operator]
             if file_specifier == "insert_size":
+                print(colored("insert_size", attrs=["bold"]))
                 print(metric.insert_size(operator=operator, operand=operand))
             elif file_specifier == "hsmetric":
                 print(colored("hsmetric", attrs=["bold"]))

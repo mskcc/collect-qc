@@ -87,9 +87,15 @@ class Metric:
                         peaks = find_peaks(
                             peak_data, height=max_peak / 3, distance=10, width=10
                         )
-                        insert_size_data.append(
-                            f'{run_file.split(".")[0]}, peaks: {len(peaks[0])}, max_peak: {max_peak}'
-                        )
+                        peak_amt = len(peaks[0])
+                        if peak_amt == 1:
+                            insert_size_data.append(
+                                f'{colored("PASS", color="green", attrs=["bold"])} {run_file.split(".")[0]}, peaks: {len(peaks[0])}, max_peak: {max_peak}'
+                            )
+                        else:
+                            insert_size_data.append(
+                                f'{colored("FAIL", color="red", attrs=["bold"])} {run_file.split(".")[0]}, peaks: {len(peaks[0])}, max_peak: {max_peak}'
+                            )
         insert_size_out = "\n".join(insert_size_data)
 
         return insert_size_out
