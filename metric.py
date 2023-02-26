@@ -122,7 +122,7 @@ class Function:
             return colored("PASS", "green", attrs=["bold"])
         elif data > error and data <= warn:
             return colored("WARNING", "yellow", attrs=["bold"])
-        elif data < error:
+        elif data <= error:
             return colored("ERROR", "red", attrs=["bold"])
         else:
             return colored(
