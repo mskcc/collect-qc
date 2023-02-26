@@ -35,7 +35,11 @@ class Metric:
 
                         hist_data = pd.read_csv(StringIO("\n".join(hist)), sep="\t")
                         if set(operand["columns"]) != {1, 2}:
-                            return f"Incorrect columns specified in the config file."
+                            return colored(
+                                f"Incorrect columns specified in the config file.",
+                                color="red",
+                                attrs=["bold"],
+                            )
                         fun = Function(operator, {"columns": [1, 2]})
                         tab_data = fun(hist_data)
                         peak_data = tab_data.iloc[:, 1]
@@ -67,7 +71,11 @@ class Function:
         if self.operator == "table":
             return self.table(data)
         else:
-            return f"{self.operator} is not an available function."
+            return colored(
+                f"{self.operator} is not an available function.",
+                color="red",
+                attrs=["bold"],
+            )
 
     def table(self, data):
         cols = []

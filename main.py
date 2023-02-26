@@ -8,15 +8,28 @@ def process_metric(metric):
     for file_specifier in config_file["metrics"]:
         metric_functions = config_file["metrics"][file_specifier]
         if metric_functions is None:
-            print(f"{file_specifier} is not an available metric.")
+            print(
+                colored(
+                    f"{file_specifier} is not an available metric.",
+                    color="red",
+                    attrs=["bold"],
+                )
+            )
             return
         for operator in metric_functions["function"]:
             operand = metric_functions["function"][operator]
             if file_specifier == "insert_size":
-                print(colored("insert_size", attrs=["bold"]))
+                print(colored("insert_size", attrs=["bold", "underline"]))
                 print(metric.insert_size(operator=operator, operand=operand))
+                print("\n")
             else:
-                print(f"{file_specifier} is not an available metric.")
+                print(
+                    colored(
+                        f"{file_specifier} is not an available metric.",
+                        color="red",
+                        attrs=["bold"],
+                    )
+                )
 
     return
 
