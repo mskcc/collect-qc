@@ -1,4 +1,5 @@
 from colorama import just_fix_windows_console
+
 just_fix_windows_console()
 from termcolor import colored
 from io import StringIO
@@ -27,7 +28,7 @@ class Metric:
             for run_file in os.listdir(run_path):
                 if run_file.endswith(".hsmetrics"):
                     with open(os.path.join(run_path, run_file)) as f:
-                        hsmetric_row1_flag= False
+                        hsmetric_row1_flag = False
                         hsmetric_row2_flag = False
                         for line in f:
                             if line.startswith("## METRICS CLASS"):
@@ -43,12 +44,18 @@ class Metric:
                         # Index out MEAN_TARGET_COVERAGE
                         hsmetric_row1 = hsmetric_row1.split("\t")
                         hsmetric_row2 = hsmetric_row2.split("\t")
-                        mean_target_coverage_idx = hsmetric_row1.index("MEAN_TARGET_COVERAGE")
-                        mean_target_coverage = float(hsmetric_row2[mean_target_coverage_idx])
+                        mean_target_coverage_idx = hsmetric_row1.index(
+                            "MEAN_TARGET_COVERAGE"
+                        )
+                        mean_target_coverage = float(
+                            hsmetric_row2[mean_target_coverage_idx]
+                        )
 
                         fun = Function(operator, operand)
                         sample_cov = fun(mean_target_coverage)
-                        hsmetric_data.append(f"{sample_cov} {run_file.split('.')[0]} Mean Target Coverage: {mean_target_coverage}")
+                        hsmetric_data.append(
+                            f"{sample_cov} {run_file.split('.')[0]} Mean Target Coverage: {mean_target_coverage}"
+                        )
 
         hsmetric_out = "\n".join(hsmetric_data)
         return hsmetric_out
@@ -83,7 +90,7 @@ class Metric:
                         insert_size_data.append(
                             f'{run_file.split(".")[0]}, peaks: {len(peaks[0])}, max_peak: {max_peak}'
                         )
-                        insert_size_out = "\n".join(insert_size_data)
+        insert_size_out = "\n".join(insert_size_data)
 
         return insert_size_out
 
@@ -112,7 +119,9 @@ class Function:
         elif data < error:
             return colored("ERROR", "red", attrs=["bold"])
         else:
-            return colored("Mean target coverage could not be determined", "red", attrs=["bold"])
+            return colored(
+                "Mean target coverage could not be determined", "red", attrs=["bold"]
+            )
 
     def table(self, data):
         cols = []
