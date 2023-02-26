@@ -75,7 +75,11 @@ class Metric:
 
                         hist_data = pd.read_csv(StringIO("\n".join(hist)), sep="\t")
                         if set(operand["columns"]) != {1, 2}:
-                            return f"Incorrect columns specified in the config file."
+                            return colored(
+                                f"Incorrect columns specified in the config file.",
+                                color="red",
+                                attrs=["bold"],
+                            )
                         fun = Function(operator, {"columns": [1, 2]})
                         tab_data = fun(hist_data)
                         peak_data = tab_data.iloc[:, 1]
@@ -109,7 +113,11 @@ class Function:
         elif self.operator == "mean_target_coverage":
             return self.mean_target_coverage(data)
         else:
-            return f"{self.operator} is not an available function."
+            return colored(
+                f"{self.operator} is not an available function.",
+                color="red",
+                attrs=["bold"],
+            )
 
     def mean_target_coverage(self, data):
         warn = self.operand["warn"]
