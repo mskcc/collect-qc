@@ -20,9 +20,9 @@ def process_metric(metric):
                 print(colored("insert_size", attrs=["bold", "underline"]))
                 print(metric.insert_size(operator=operator, operand=operand))
                 print("\n")
-            elif file_specifier == "hsmetric":
-                print(colored("hsmetric", attrs=["bold", "underline"]))
-                print(metric.hsmetric(operator=operator, operand=operand))
+            elif file_specifier == "hsmetrics":
+                print(colored("hsmetrics", attrs=["bold", "underline"]))
+                print(metric.hsmetrics(operator=operator, operand=operand))
                 print("\n")
             else:
                 print(

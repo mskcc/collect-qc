@@ -17,45 +17,45 @@ class Metric:
         self.qc_data_path = config["qc_data_path"]
         return config
 
-    def hsmetric(self, operator, operand):
+    def hsmetrics(self, operator, operand):
         runs = os.listdir(self.qc_data_path)
-        hsmetric_data = []
+        hsmetrics_data = []
         for run in runs:
             run_path = os.path.join(self.qc_data_path, run)
             for run_file in os.listdir(run_path):
                 if run_file.endswith(".hsmetrics"):
                     with open(os.path.join(run_path, run_file)) as f:
-                        hsmetric_row1_flag = False
-                        hsmetric_row2_flag = False
+                        hsmetrics_row1_flag = False
+                        hsmetrics_row2_flag = False
                         for line in f:
                             if line.startswith("## METRICS CLASS"):
-                                hsmetric_row1_flag = True
-                            elif hsmetric_row1_flag:
-                                hsmetric_row1 = line
-                                hsmetric_row1_flag = False
-                                hsmetric_row2_flag = True
-                            elif hsmetric_row2_flag:
-                                hsmetric_row2 = line
-                                hsmetric_row2_flag = False
+                                hsmetrics_row1_flag = True
+                            elif hsmetrics_row1_flag:
+                                hsmetrics_row1 = line
+                                hsmetrics_row1_flag = False
+                                hsmetrics_row2_flag = True
+                            elif hsmetrics_row2_flag:
+                                hsmetrics_row2 = line
+                                hsmetrics_row2_flag = False
                                 break
                         # Index out MEAN_TARGET_COVERAGE
-                        hsmetric_row1 = hsmetric_row1.split("\t")
-                        hsmetric_row2 = hsmetric_row2.split("\t")
-                        mean_target_coverage_idx = hsmetric_row1.index(
+                        hsmetrics_row1 = hsmetrics_row1.split("\t")
+                        hsmetrics_row2 = hsmetrics_row2.split("\t")
+                        mean_target_coverage_idx = hsmetrics_row1.index(
                             "MEAN_TARGET_COVERAGE"
                         )
                         mean_target_coverage = float(
-                            hsmetric_row2[mean_target_coverage_idx]
+                            hsmetrics_row2[mean_target_coverage_idx]
                         )
 
                         fun = Function(operator, operand)
                         sample_cov = fun(mean_target_coverage)
-                        hsmetric_data.append(
+                        hsmetrics_data.append(
                             f"{sample_cov} {run_file.split('.')[0]} Mean Target Coverage: {mean_target_coverage}"
                         )
 
-        hsmetric_out = "\n".join(hsmetric_data)
-        return hsmetric_out
+        hsmetrics_out = "\n".join(hsmetrics_data)
+        return hsmetrics_out
 
     def insert_size(self, operator, operand):
         runs = os.listdir(self.qc_data_path)
