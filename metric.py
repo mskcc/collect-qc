@@ -48,6 +48,34 @@ class Metric:
                             hsmetrics_row2[mean_target_coverage_idx]
                         )
 
+                        if operator == "mean_target_coverage":
+                            if operand["warn"] and operand["error"]:
+                                if operand["warn"] == operand["error"]:
+                                    return colored(
+                                        '"warn" and "error" cannot be the same value."',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
+                                elif operand["warn"] < operand["error"]:
+                                    return colored(
+                                        '"warn" cannot be less than "error".',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
+                                else:
+                                    pass
+                            else:
+                                return colored(
+                                    '"warn" and/or "error" not specified in the config file.',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                        else:
+                            return colored(
+                                "Incorrect function specified in the config file.",
+                                color="red",
+                                attrs=["bold"],
+                            )
                         fun = Function(operator, operand)
                         sample_cov = fun(mean_target_coverage)
                         hsmetrics_data.append(
