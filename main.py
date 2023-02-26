@@ -1,3 +1,4 @@
+from termcolor import colored
 from metric import Metric
 
 
@@ -13,6 +14,9 @@ def process_metric(metric):
             operand = metric_functions["function"][operator]
             if file_specifier == "insert_size":
                 print(metric.insert_size(operator=operator, operand=operand))
+            elif file_specifier == "hsmetric":
+                print(colored("hsmetric", attrs=["bold"]))
+                print(metric.hsmetric(operator=operator, operand=operand))
             else:
                 print(f"{file_specifier} is not an available metric.")
 

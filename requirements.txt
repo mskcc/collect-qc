@@ -1,3 +1,5 @@
+colorama
 pandas
 pyyaml
 scipy
+termcolor
