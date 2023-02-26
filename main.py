@@ -1,6 +1,3 @@
-from colorama import just_fix_windows_console
-
-just_fix_windows_console()
 from termcolor import colored
 from metric import Metric
 
