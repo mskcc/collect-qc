@@ -26,9 +26,11 @@ def process_metric(metric):
                 print("\n")
             else:
                 print(
-                    colored(f"{file_specifier} is not an available metric."),
-                    color="red",
-                    attrs=["bold"],
+                    colored(
+                        f"{file_specifier} is not an available metric.",
+                        color="red",
+                        attrs=["bold"],
+                    )
                 )
 
     return
