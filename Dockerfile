@@ -1,11 +1,17 @@
 FROM python:3.8-slim-buster
 
-RUN mkdir /app
-WORKDIR /app
-COPY requirements.txt requirements.txt
-COPY main.py main.py
-COPY metric.py metric.py
+ARG FEATURE_BRANCH=feature/hsmetrics
 
-RUN pip install -r requirements.txt
+WORKDIR /usr/bin
 
-CMD ["python", "./collect-qc/main.py"]
+# Copy data from the volume into the container
+COPY . .
+
+RUN apt-get clean \
+    && apt-get update -qq \
+    && apt-get install -y git \
+    && cd /usr/bin \
+    && git clone https://github.com/mskcc/collect-qc.git --branch ${FEATURE_BRANCH} \
+    && pip install -r collect-qc/requirements.txt 
+
+CMD ["python", "collect-qc/main.py"]
