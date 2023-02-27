@@ -17,6 +17,74 @@ class Metric:
         self.qc_data_path = config["qc_data_path"]
         return config
 
+    def hsmetrics(self, operator, operand):
+        runs = os.listdir(self.qc_data_path)
+        hsmetrics_data = []
+        for run in runs:
+            run_path = os.path.join(self.qc_data_path, run)
+            for run_file in os.listdir(run_path):
+                if run_file.endswith(".hsmetrics"):
+                    with open(os.path.join(run_path, run_file)) as f:
+                        hsmetrics_row1_flag = False
+                        hsmetrics_row2_flag = False
+                        for line in f:
+                            if line.startswith("## METRICS CLASS"):
+                                hsmetrics_row1_flag = True
+                            elif hsmetrics_row1_flag:
+                                hsmetrics_row1 = line
+                                hsmetrics_row1_flag = False
+                                hsmetrics_row2_flag = True
+                            elif hsmetrics_row2_flag:
+                                hsmetrics_row2 = line
+                                hsmetrics_row2_flag = False
+                                break
+                        # Index out MEAN_TARGET_COVERAGE
+                        hsmetrics_row1 = hsmetrics_row1.split("\t")
+                        hsmetrics_row2 = hsmetrics_row2.split("\t")
+                        mean_target_coverage_idx = hsmetrics_row1.index(
+                            "MEAN_TARGET_COVERAGE"
+                        )
+                        mean_target_coverage = float(
+                            hsmetrics_row2[mean_target_coverage_idx]
+                        )
+
+                        if operator == "mean_target_coverage":
+                            if operand["warn"] and operand["error"]:
+                                if operand["warn"] == operand["error"]:
+                                    return colored(
+                                        '"warn" and "error" cannot be the same value."',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
+                                elif operand["warn"] < operand["error"]:
+                                    return colored(
+                                        '"warn" cannot be less than "error".',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
+                                else:
+                                    pass
+                            else:
+                                return colored(
+                                    '"warn" and/or "error" not specified in the config file.',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                        else:
+                            return colored(
+                                "Incorrect function specified in the config file.",
+                                color="red",
+                                attrs=["bold"],
+                            )
+                        fun = Function(operator, operand)
+                        sample_cov = fun(mean_target_coverage)
+                        hsmetrics_data.append(
+                            f"{sample_cov} {run_file.split('.')[0]} Mean Target Coverage: {mean_target_coverage}"
+                        )
+
+        hsmetrics_out = "\n".join(hsmetrics_data)
+        return hsmetrics_out
+
     def insert_size(self, operator, operand):
         runs = os.listdir(self.qc_data_path)
         insert_size_data = []
@@ -70,11 +138,28 @@ class Function:
     def __call__(self, data):
         if self.operator == "table":
             return self.table(data)
+        elif self.operator == "mean_target_coverage":
+            return self.mean_target_coverage(data)
         else:
             return colored(
                 f"{self.operator} is not an available function.",
                 color="red",
                 attrs=["bold"],
+            )
+
+    def mean_target_coverage(self, data):
+        warn = self.operand["warn"]
+        error = self.operand["error"]
+
+        if data > warn:
+            return colored("PASS", "green", attrs=["bold"])
+        elif data > error and data <= warn:
+            return colored("WARNING", "yellow", attrs=["bold"])
+        elif data <= error:
+            return colored("ERROR", "red", attrs=["bold"])
+        else:
+            return colored(
+                "Mean target coverage could not be determined", "red", attrs=["bold"]
             )
 
     def table(self, data):

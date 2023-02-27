@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
 
-ARG FEATURE_BRANCH=feature/insert_size
+ARG FEATURE_BRANCH=feature/hsmetrics
 
 WORKDIR /usr/bin
 
