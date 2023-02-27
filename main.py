@@ -9,9 +9,11 @@ def process_metric(metric):
         metric_functions = config_file["metrics"][file_specifier]
         if metric_functions is None:
             print(
-                colored(f"{file_specifier} is not an available metric."),
-                color="red",
-                attrs=["bold"],
+                colored(
+                    f"{file_specifier} is not an available metric.",
+                    color="red",
+                    attrs=["bold"],
+                )
             )
             return
         for operator in metric_functions["function"]:
