@@ -127,13 +127,13 @@ class Metric:
 
                         max_peak_idx = peak_data.idxmax()
                         max_peak = tab_data.iloc[:, 0].iloc[max_peak_idx]
-                        plot_label = f'{run_file.split(".")[0]} peak: {max_peak}'
+                        legend_label = f'{run_file.split(".")[0]} Peak: {max_peak}'
                         sns.lineplot(
                             data=tab_data,
                             x=tab_data.columns[0],
                             y=tab_data.columns[1],
                             ax=ax,
-                            label=plot_label,
+                            label=legend_label,
                         )
                         x_lim = min(x_lim, tab_data.iloc[:, 0].max())
 
@@ -143,19 +143,19 @@ class Metric:
                         peak_amt = len(peaks[0])
                         if peak_amt == 1:
                             insert_size_data.append(
-                                f'{colored("PASS", color="green", attrs=["bold"])} {run_file.split(".")[0]}, peaks: {len(peaks[0])}, max_peak: {max_peak}'
+                                f'{colored("PASS", color="green", attrs=["bold"])} {run_file.split(".")[0]}, Peaks: {len(peaks[0])}, Max Peak: {max_peak}'
                             )
                         else:
                             insert_size_data.append(
-                                f'{colored("FAIL", color="red", attrs=["bold"])} {run_file.split(".")[0]}, peaks: {len(peaks[0])}, max_peak: {max_peak}'
+                                f'{colored("FAIL", color="red", attrs=["bold"])} {run_file.split(".")[0]}, Peaks: {len(peaks[0])}, Max Peak: {max_peak}'
                             )
-
+        ax.set_facecolor("#eeeeee")
         plt.ylabel("")
         plt.xlabel("Insert Size")
         plt.xlim(0, round(x_lim / 100) * 100)
         plt.grid()
         plt.tight_layout()
-        plt.title("Insert Size Distribution")
+        plt.title("Insert Size Distribution", loc="left", fontsize=20)
         plt.savefig("plots/insert_size.png")
         insert_size_out = "\n".join(insert_size_data)
 
