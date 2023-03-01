@@ -1,5 +1,7 @@
 from termcolor import colored
 from io import StringIO
+import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 import pandas as pd
 from scipy.signal import find_peaks
@@ -15,6 +17,7 @@ class Metric:
         with open(config_file) as f:
             config = yaml.safe_load(f)
         self.qc_data_path = config["qc_data_path"]
+        os.mkdir("plots")
         return config
 
     def hsmetrics(self, operator, operand):
@@ -88,6 +91,8 @@ class Metric:
     def insert_size(self, operator, operand):
         runs = os.listdir(self.qc_data_path)
         insert_size_data = []
+        fig, ax = plt.subplots(figsize=(20, 10), sharex=True, sharey=True)
+        x_lim = float("inf")
         for run in runs:
             run_path = os.path.join(self.qc_data_path, run)
             for run_file in os.listdir(run_path):
@@ -110,9 +115,27 @@ class Metric:
                             )
                         fun = Function(operator, {"columns": [1, 2]})
                         tab_data = fun(hist_data)
+                        tab_data = tab_data.rename(
+                            {
+                                tab_data.columns[0]: "insert_size",
+                                tab_data.columns[1]: run_file.split(".")[0],
+                            },
+                            axis=1,
+                        )
                         peak_data = tab_data.iloc[:, 1]
+
                         max_peak_idx = peak_data.idxmax()
                         max_peak = tab_data.iloc[:, 0].iloc[max_peak_idx]
+                        plot_label = f'{run_file.split(".")[0]} peak: {max_peak}'
+                        sns.lineplot(
+                            data=tab_data,
+                            x=tab_data.columns[0],
+                            y=tab_data.columns[1],
+                            ax=ax,
+                            label=plot_label,
+                        )
+                        x_lim = min(x_lim, tab_data.iloc[:, 0].max())
+
                         peaks = find_peaks(
                             peak_data, height=max_peak / 3, distance=10, width=10
                         )
@@ -125,6 +148,14 @@ class Metric:
                             insert_size_data.append(
                                 f'{colored("FAIL", color="red", attrs=["bold"])} {run_file.split(".")[0]}, peaks: {len(peaks[0])}, max_peak: {max_peak}'
                             )
+
+        plt.ylabel("")
+        plt.xlabel("Insert Size")
+        plt.xlim(0, round(x_lim / 100) * 100)
+        plt.grid()
+        plt.tight_layout()
+        plt.title("Insert Size Distribution")
+        plt.savefig("plots/insert_size.png")
         insert_size_out = "\n".join(insert_size_data)
 
         return insert_size_out
