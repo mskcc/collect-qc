@@ -17,7 +17,8 @@ class Metric:
         with open(config_file) as f:
             config = yaml.safe_load(f)
         self.qc_data_path = config["qc_data_path"]
-        os.mkdir("plots")
+        if not os.path.exists("plots"):
+            os.mkdir("plots")
         return config
 
     def hsmetrics(self, operator, operand):
