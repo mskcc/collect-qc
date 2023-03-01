@@ -11,21 +11,21 @@ import yaml
 class Metric:
     def __init__(self):
         self.config = None
-        self.qc_data_path = None
+        self.qc_folder = None
 
     def load_config(self, config_file):
         with open(config_file) as f:
-            config = yaml.safe_load(f)
-        self.qc_data_path = config["qc_data_path"]
+            self.config = yaml.safe_load(f)
+        self.qc_folder = os.path.join(os.getcwd(), self.config["qc_folder"])
         if not os.path.exists("plots"):
             os.mkdir("plots")
-        return config
+        return self.config
 
     def hsmetrics(self, operator, operand):
-        runs = os.listdir(self.qc_data_path)
+        runs = os.listdir(self.qc_folder)
         hsmetrics_data = []
         for run in runs:
-            run_path = os.path.join(self.qc_data_path, run)
+            run_path = os.path.join(self.qc_folder, run)
             for run_file in os.listdir(run_path):
                 if run_file.endswith(".hsmetrics"):
                     with open(os.path.join(run_path, run_file)) as f:
@@ -90,12 +90,12 @@ class Metric:
         return hsmetrics_out
 
     def insert_size(self, operator, operand):
-        runs = os.listdir(self.qc_data_path)
+        runs = os.listdir(self.qc_folder)
         insert_size_data = []
         fig, ax = plt.subplots(figsize=(20, 10), sharex=True, sharey=True)
         x_lim = float("inf")
         for run in runs:
-            run_path = os.path.join(self.qc_data_path, run)
+            run_path = os.path.join(self.qc_folder, run)
             for run_file in os.listdir(run_path):
                 if run_file.endswith(".ismetrics"):
                     with open(os.path.join(run_path, run_file)) as f:
