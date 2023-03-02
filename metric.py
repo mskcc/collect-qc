@@ -154,7 +154,7 @@ class Metric:
         plt.xlabel("Insert Size")
         plt.xlim(0, round(x_lim / 100) * 100)
         plt.grid()
-        plt.tight_layout()
+        plt.tight_layout(pad=3)
         plt.title("Insert Size Distribution", loc="left", fontsize=20)
         plt.savefig("plots/insert_size.png")
         insert_size_out = "\n".join(insert_size_data)
