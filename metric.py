@@ -52,25 +52,53 @@ class Metric:
                             hsmetrics_row2[mean_target_coverage_idx]
                         )
 
-                        if operator == "mean_target_coverage":
-                            if operand["warn"] and operand["error"]:
-                                if operand["warn"] == operand["error"]:
-                                    return colored(
-                                        '"warn" and "error" cannot be the same value."',
-                                        color="red",
-                                        attrs=["bold"],
-                                    )
-                                elif operand["warn"] < operand["error"]:
-                                    return colored(
-                                        '"warn" cannot be less than "error".',
-                                        color="red",
-                                        attrs=["bold"],
-                                    )
+                        if operator == "coverage":
+                            if "mean_target_coverage" in operand.keys():
+                                if (
+                                    operand["mean_target_coverage"]["warn"]
+                                    and operand["mean_target_coverage"]["error"]
+                                ):
+                                    if (
+                                        operand["mean_target_coverage"]["warn"]
+                                        == operand["mean_target_coverage"]["error"]
+                                    ):
+                                        return colored(
+                                            '"warn" and "error" cannot be the same value."',
+                                            color="red",
+                                            attrs=["bold"],
+                                        )
+                                    elif (
+                                        operand["mean_target_coverage"]["warn"]
+                                        < operand["mean_target_coverage"]["error"]
+                                    ):
+                                        return colored(
+                                            '"warn" cannot be less than "error".',
+                                            color="red",
+                                            attrs=["bold"],
+                                        )
+                                    else:
+                                        fun = Function(
+                                            "mean_target_coverage",
+                                            operand["mean_target_coverage"],
+                                        )
+                                        sample_cov = fun(mean_target_coverage)
+                                        hsmetrics_data.append(
+                                            {
+                                                "autostatus": sample_cov,
+                                                "file": run_file,
+                                                "sample": run_file.split(".")[0],
+                                                "coverage": mean_target_coverage,
+                                            }
+                                        )
                                 else:
-                                    pass
+                                    return colored(
+                                        '"warn" and/or "error" not specified in the config file.',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
                             else:
                                 return colored(
-                                    '"warn" and/or "error" not specified in the config file.',
+                                    "Incorrect function specified in the config file.",
                                     color="red",
                                     attrs=["bold"],
                                 )
@@ -80,14 +108,8 @@ class Metric:
                                 color="red",
                                 attrs=["bold"],
                             )
-                        fun = Function(operator, operand)
-                        sample_cov = fun(mean_target_coverage)
-                        hsmetrics_data.append(
-                            f"{sample_cov} {run_file.split('.')[0]} Mean Target Coverage: {mean_target_coverage}"
-                        )
 
-        hsmetrics_out = "\n".join(hsmetrics_data)
-        return hsmetrics_out
+        return hsmetrics_data
 
     def insert_size(self, operator, operand):
         runs = os.listdir(self.qc_folder)

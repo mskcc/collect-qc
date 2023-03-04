@@ -24,7 +24,17 @@ def process_metric(metric):
                 print("\n")
             elif file_specifier == "hsmetrics":
                 print(colored("hsmetrics", attrs=["bold", "underline"]))
-                print(metric.hsmetrics(operator=operator, operand=operand))
+                hsmetrics_results = metric.hsmetrics(operator=operator, operand=operand)
+                if type(hsmetrics_results) is list:
+                    for hsmetric_result in hsmetrics_results:
+                        if type(hsmetric_result) is dict:
+                            print(
+                                f'{hsmetric_result["autostatus"]} {hsmetric_result["sample"]} Mean Target Coverage: {hsmetric_result["coverage"]}'
+                            )
+                        else:
+                            print(hsmetric_result)
+                else:
+                    print(hsmetrics_results)
                 print("\n")
             else:
                 print(
