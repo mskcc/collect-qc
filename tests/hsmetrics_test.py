@@ -14,6 +14,7 @@ from metric import Metric
 metric = Metric()
 metric.qc_folder = os.path.join(test_dir, "collect-qc-test-data")
 
+# Mean target coverage values for warn: 700 and error: 500
 correct_coverages = [
     {
         "autostatus": colored("PASS", color="green", attrs=["bold"]),
