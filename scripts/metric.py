@@ -14,9 +14,9 @@ class Metric:
         self.qc_folder = None
 
     def load_config(self, config_file):
-        with open(os.path.join("..", config_file)) as f:
+        with open(config_file) as f:
             self.config = yaml.safe_load(f)
-        self.qc_folder = os.path.join("..", self.config["qc_folder"])
+        self.qc_folder = os.path.join(os.getcwd(), self.config["qc_folder"])
         if not os.path.exists("plots"):
             os.mkdir("plots")
         return self.config
