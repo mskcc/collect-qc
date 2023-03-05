@@ -1,5 +1,6 @@
 matplotlib
 pandas
+pytest
 pyyaml
 scipy
 seaborn
