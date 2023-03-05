@@ -68,8 +68,14 @@ correct_coverages = [
 
 
 def test_mean_target_coverage():
-    mean_target_coverages = metric.hsmetrics(
+    correct_mean_target_coverages = metric.hsmetrics(
         operator="coverage",
         operand={"mean_target_coverage": {"warn": 700, "error": 500}},
     )
-    assert mean_target_coverages == correct_coverages
+    assert correct_mean_target_coverages == correct_coverages
+
+    incorrect_mean_target_coverages = metric.hsmetrics(
+        operator="coverage",
+        operand={"mean_target_coverage": {"warn": 0, "error": 0}},
+    )
+    assert incorrect_mean_target_coverages != correct_coverages
