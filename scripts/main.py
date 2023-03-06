@@ -19,11 +19,11 @@ def process_metric(metric):
         for operator in metric_functions["function"]:
             operand = metric_functions["function"][operator]
             if file_specifier == "insert_size":
-                print(colored("insert_size", attrs=["bold", "underline"]))
+                print(colored("Insert Size", attrs=["bold", "underline"]))
                 print(metric.insert_size(operator=operator, operand=operand))
                 print("\n")
             elif file_specifier == "hsmetrics":
-                print(colored("hsmetrics", attrs=["bold", "underline"]))
+                print(colored("HsMetrics", attrs=["bold", "underline"]))
                 hsmetrics_results = metric.hsmetrics(operator=operator, operand=operand)
                 if type(hsmetrics_results) is list:
                     for hsmetric_result in hsmetrics_results:
