@@ -1,17 +1,19 @@
 FROM python:3.8-slim-buster
 
-ARG FEATURE_BRANCH=feature/hsmetrics
-
-WORKDIR /usr/bin
-
-# Copy data from the volume into the container
-COPY . .
+ARG FEATURE_BRANCH=feature/insert_size_plot
 
 RUN apt-get clean \
     && apt-get update -qq \
     && apt-get install -y git \
-    && cd /usr/bin \
+    && mkdir /usr/bin/app \
+    && cd /usr/bin/app \
     && git clone https://github.com/mskcc/collect-qc.git --branch ${FEATURE_BRANCH} \
-    && pip install -r collect-qc/requirements.txt 
+    && pip install -r collect-qc/requirements.txt
 
-CMD ["python", "collect-qc/main.py"]
+# Mount the repo onto a volume
+VOLUME /usr/bin/app/collect-qc
+
+# Change to the directory with the config.yaml and data files
+WORKDIR /usr/bin/app
+
+CMD [ "python", "/usr/bin/app/collect-qc/main.py" ]
