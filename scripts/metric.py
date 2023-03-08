@@ -52,25 +52,16 @@ class Metric:
                             hsmetrics_row2[mean_target_coverage_idx]
                         )
 
-                        if operator == "coverage":
-                            if "mean_target_coverage" in operand.keys():
-                                if (
-                                    operand["mean_target_coverage"]["warn"]
-                                    and operand["mean_target_coverage"]["error"]
-                                ):
-                                    if (
-                                        operand["mean_target_coverage"]["warn"]
-                                        == operand["mean_target_coverage"]["error"]
-                                    ):
+                        if operator == "threshold":
+                            if operand["column"] == "mean_target_coverage":
+                                if operand["warn"] and operand["error"]:
+                                    if operand["warn"] == operand["error"]:
                                         return colored(
                                             '"warn" and "error" cannot be the same value."',
                                             color="red",
                                             attrs=["bold"],
                                         )
-                                    elif (
-                                        operand["mean_target_coverage"]["warn"]
-                                        < operand["mean_target_coverage"]["error"]
-                                    ):
+                                    elif operand["warn"] < operand["error"]:
                                         return colored(
                                             '"warn" cannot be less than "error".',
                                             color="red",
@@ -79,13 +70,12 @@ class Metric:
                                     else:
                                         fun = Function(
                                             "mean_target_coverage",
-                                            operand["mean_target_coverage"],
+                                            operand,
                                         )
                                         sample_cov = fun(mean_target_coverage)
                                         hsmetrics_data.append(
                                             {
                                                 "autostatus": sample_cov,
-                                                "file": run_file,
                                                 "sample": run_file.split(".")[0],
                                                 "coverage": mean_target_coverage,
                                             }
@@ -190,8 +180,8 @@ class Function:
         self.operand = operand
 
     def __call__(self, data):
-        if self.operator == "table":
-            return self.table(data)
+        if self.operator == "peak_analysis":
+            return self.peak_analysis(data)
         elif self.operator == "mean_target_coverage":
             return self.mean_target_coverage(data)
         else:
@@ -216,7 +206,7 @@ class Function:
                 "Mean target coverage could not be determined", "red", attrs=["bold"]
             )
 
-    def table(self, data):
+    def peak_analysis(self, data):
         cols = []
         # Convert from 1-based to 0-based indexing
         if self.operand["columns"]:
