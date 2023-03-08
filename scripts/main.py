@@ -1,6 +1,6 @@
 from termcolor import colored
 from metric import Metric
-
+from tabulate import tabulate
 
 def process_metric(metric):
     config_file = metric.load_config(config_file="config.yaml")
@@ -23,16 +23,12 @@ def process_metric(metric):
                 print(metric.insert_size(operator=operator, operand=operand))
                 print("\n")
             elif file_specifier == "hsmetrics":
-                print(colored("HsMetrics", attrs=["bold", "underline"]))
+                print(colored("HsMetrics", attrs=["bold"]))
                 hsmetrics_results = metric.hsmetrics(operator=operator, operand=operand)
                 if type(hsmetrics_results) is list:
-                    for hsmetric_result in hsmetrics_results:
-                        if type(hsmetric_result) is dict:
-                            print(
-                                f'{hsmetric_result["autostatus"]} {hsmetric_result["sample"]} Mean Target Coverage: {hsmetric_result["coverage"]}'
-                            )
-                        else:
-                            print(hsmetric_result)
+                    header = hsmetrics_results[0].keys()
+                    rows =  [hsmetrics_sample.values() for hsmetrics_sample in hsmetrics_results]
+                    print(tabulate(rows, header, tablefmt="simple"))
                 else:
                     print(hsmetrics_results)
                 print("\n")
