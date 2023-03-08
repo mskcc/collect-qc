@@ -75,9 +75,9 @@ class Metric:
                                         sample_cov = fun(mean_target_coverage)
                                         hsmetrics_data.append(
                                             {
-                                                "autostatus": sample_cov,
-                                                "sample": run_file.split(".")[0],
-                                                "coverage": mean_target_coverage,
+                                                "AutoStatus": sample_cov,
+                                                "Sample": run_file.split(".")[0],
+                                                "Coverage": mean_target_coverage,
                                             }
                                         )
                                 else:
@@ -155,11 +155,25 @@ class Metric:
                         peak_amt = len(peaks[0])
                         if peak_amt == 1:
                             insert_size_data.append(
-                                f'{colored("PASS", color="green", attrs=["bold"])} {run_file.split(".")[0]}, Peaks: {len(peaks[0])}, Max Peak: {max_peak}'
+                                {
+                                    "AutoStatus": colored(
+                                        "PASS", color="green", attrs=["bold"]
+                                    ),
+                                    "Sample": run_file.split(".")[0],
+                                    "Peaks": peak_amt,
+                                    "Max Peak": max_peak,
+                                }
                             )
                         else:
                             insert_size_data.append(
-                                f'{colored("FAIL", color="red", attrs=["bold"])} {run_file.split(".")[0]}, Peaks: {len(peaks[0])}, Max Peak: {max_peak}'
+                                {
+                                    "AutoStatus": colored(
+                                        "FAIL", color="red", attrs=["bold"]
+                                    ),
+                                    "Sample": run_file.split(".")[0],
+                                    "Peaks": peak_amt,
+                                    "Max Peak": max_peak,
+                                }
                             )
         ax.set_facecolor("#eeeeee")
         plt.ylabel("")
@@ -169,9 +183,8 @@ class Metric:
         plt.tight_layout(pad=3)
         plt.title("Insert Size Distribution", loc="left", fontsize=20)
         plt.savefig("plots/insert_size.png")
-        insert_size_out = "\n".join(insert_size_data)
 
-        return insert_size_out
+        return insert_size_data
 
 
 class Function:
