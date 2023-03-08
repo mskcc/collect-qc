@@ -6,7 +6,7 @@ from termcolor import colored
 
 # Import the test data
 test_file_dir = os.path.dirname(__file__)
-sys.path.append(os.path.join(test_file_dir, "files", "hsmetrics"))
+sys.path.append(os.path.join(test_file_dir, "files"))
 from hsmetrics_test_vars import pass_mean_coverages, warn_error_mean_coverages
 
 # Import Metric from the scripts folder
@@ -15,7 +15,7 @@ from metric import Metric
 
 # Initialize the Metric class and set the qc_folder
 metric = Metric()
-metric.qc_folder = os.path.join(test_file_dir, "files", "hsmetrics", "hsmetrics_test_data")
+metric.qc_folder = os.path.join(test_file_dir, "files", "collect-qc-test-data")
 
 
 def test_mean_target_coverage():

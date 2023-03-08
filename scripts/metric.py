@@ -77,7 +77,7 @@ class Metric:
                                             {
                                                 "AutoStatus": sample_cov,
                                                 "Sample": run_file.split(".")[0],
-                                                "Coverage": mean_target_coverage,
+                                                "Mean Target Coverage": mean_target_coverage,
                                             }
                                         )
                                 else:
