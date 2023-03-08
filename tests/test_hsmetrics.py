@@ -1,7 +1,6 @@
 import os
 import pytest
 import sys
-from termcolor import colored
 
 
 # Import the test data
