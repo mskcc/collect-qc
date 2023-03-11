@@ -17,8 +17,6 @@ class Metric:
         with open(config_file) as f:
             self.config = yaml.safe_load(f)
         self.qc_folder = os.path.join(os.getcwd(), self.config["qc_folder"])
-        if not os.path.exists("plots"):
-            os.mkdir("plots")
         return self.config
 
     def hsmetrics(self, operator, operand):
@@ -105,7 +103,6 @@ class Metric:
         runs = os.listdir(self.qc_folder)
         insert_size_data = []
         fig, ax = plt.subplots(figsize=(20, 10), sharex=True, sharey=True)
-        x_lim = float("inf")
         for run in runs:
             run_path = os.path.join(self.qc_folder, run)
             for run_file in os.listdir(run_path):
@@ -147,7 +144,6 @@ class Metric:
                             ax=ax,
                             label=legend_label,
                         )
-                        x_lim = min(x_lim, tab_data.iloc[:, 0].max())
 
                         peaks = find_peaks(
                             peak_data, height=max_peak / 3, distance=10, width=10
@@ -178,10 +174,11 @@ class Metric:
         ax.set_facecolor("#eeeeee")
         plt.ylabel("")
         plt.xlabel("Insert Size")
-        plt.xlim(0, round(x_lim / 100) * 100)
         plt.grid()
         plt.tight_layout(pad=3)
         plt.title("Insert Size Distribution", loc="left", fontsize=20)
+        if not os.path.exists("plots"):
+            os.mkdir("plots")
         plt.savefig("plots/insert_size.png")
 
         return insert_size_data
