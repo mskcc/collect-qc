@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
 
-ARG BRANCH=testing/mean_target_coverage
+ARG BRANCH=testing/peak_analysis
 
 RUN apt-get clean \
     && apt-get update -qq \
