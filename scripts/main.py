@@ -4,6 +4,7 @@ from tabulate import tabulate
 
 
 def process_metric(metric):
+    results = []
     config_file = metric.load_config(config_file="config.yaml")
 
     for file_specifier in config_file["metrics"]:
@@ -31,6 +32,7 @@ def process_metric(metric):
                         for insert_size_sample in insert_size_results
                     ]
                     print(tabulate(rows, header, tablefmt="simple"))
+                    results.append(insert_size_results)
                 else:
                     print(insert_size_results)
                 print("\n")
@@ -44,6 +46,7 @@ def process_metric(metric):
                         for hsmetrics_sample in hsmetrics_results
                     ]
                     print(tabulate(rows, header, tablefmt="simple"))
+                    results.append(hsmetrics_results)
                 else:
                     print(hsmetrics_results)
                 print("\n")
@@ -56,9 +59,13 @@ def process_metric(metric):
                     )
                 )
 
-    return
+    return results
 
+def summary(results):
+    print(results)
+    return
 
 if __name__ == "__main__":
     metric = Metric()
-    process_metric(metric)
+    results = process_metric(metric)
+    summary(results)
