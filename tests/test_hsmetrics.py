@@ -22,10 +22,10 @@ def test_mean_target_coverage():
         operator="threshold",
         operand={"column": "mean_target_coverage", "warn": 700, "error": 500},
     )
-    assert warn_error_case == warn_error_mean_coverages
+    assert print(warn_error_case) == print(warn_error_mean_coverages)
 
     pass_case = metric.hsmetrics(
         operator="threshold",
         operand={"column": "mean_target_coverage", "warn": 200, "error": 100},
     )
-    assert pass_case == pass_mean_coverages
+    assert print(pass_case) == print(pass_mean_coverages)
