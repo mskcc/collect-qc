@@ -1,6 +1,6 @@
-from termcolor import colored
 from metric import Metric
 from tabulate import tabulate
+from termcolor import colored
 
 
 def process_metric(metric):
@@ -61,11 +61,74 @@ def process_metric(metric):
 
     return results
 
-def summary(results):
-    print(results)
+
+def summary(results, config):
+    fail = []
+    warning = []
+    # TODO: Add function, metric, and reason to the dictionaries when appending to fail and warning
+    for result in results:
+        for sample in result:
+            if sample["AutoStatus"] == colored("FAIL", color="red", attrs=["bold"]):
+                fail.append(sample)
+            elif sample["AutoStatus"] == colored("ERROR", color="red", attrs=["bold"]):
+                fail.append(sample)
+            elif sample["AutoStatus"] == colored(
+                "WARNING", color="yellow", attrs=["bold"]
+            ):
+                warning.append(sample)
+            else:
+                continue
+
+    if len(fail) > 0 and len(warning) > 0:
+        print(
+            f'{colored("Results:", attrs=["bold"])} {colored("Failed", color="red", attrs=["bold"])}'
+        )
+        print("\n")
+
+        print(colored("FAILED", color="red", attrs=["bold"]))
+        header = fail[0].keys()
+        rows = [sample.values() for sample in fail]
+        print(tabulate(rows, header, tablefmt="simple"))
+        print("\n")
+
+        print(colored("WARNING", color="yellow", attrs=["bold"]))
+        header = warning[0].keys()
+        rows = [sample.values() for sample in warning]
+        print(tabulate(rows, header, tablefmt="simple"))
+        print("\n")
+
+    elif len(fail) > 0:
+        print(f'Results: {colored("Failed", color="red", attrs=["bold"])}')
+        print("\n")
+
+        print(colored("FAILED", color="red", attrs=["bold"]))
+        header = fail[0].keys()
+        rows = [sample.values() for sample in fail]
+        print(tabulate(rows, header, tablefmt="simple"))
+        print("\n")
+
+    elif len(warning) > 0:
+        print(
+            f'Results: {colored("Passed with warnings", color="yellow", attrs=["bold"])}'
+        )
+        print("\n")
+
+        print(colored("WARNING", color="yellow", attrs=["bold"]))
+        header = warning[0].keys()
+        rows = [sample.values() for sample in warning]
+        print(tabulate(rows, header, tablefmt="simple"))
+        print("\n")
+    else:
+        print(f'Results: {colored("Passed", color="green", attrs=["bold"])}')
+        print("\n")
+
+    print(colored("config.yaml", attrs=["bold"]))
+    print(open("config.yaml").read())
+
     return
+
 
 if __name__ == "__main__":
     metric = Metric()
     results = process_metric(metric)
-    summary(results)
+    summary(results, config=metric.config)
