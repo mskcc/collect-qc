@@ -62,7 +62,7 @@ def process_metric(metric):
     return results
 
 
-def summary(results, config):
+def summary(results):
     fail = []
     warning = []
     # TODO: Add function, metric, and reason to the dictionaries when appending to fail and warning
@@ -131,4 +131,4 @@ def summary(results, config):
 if __name__ == "__main__":
     metric = Metric()
     results = process_metric(metric)
-    summary(results, config=metric.config)
+    summary(results)
