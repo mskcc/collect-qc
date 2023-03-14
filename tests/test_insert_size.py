@@ -1,6 +1,7 @@
 import os
 import pytest
 import sys
+import json
 
 
 # Import the test data
@@ -24,4 +25,4 @@ def test_peak_analysis():
     assert os.path.exists("plots/insert_size.png")
     os.remove("plots/insert_size.png")
     os.rmdir("plots")
-    assert print(peak_analysis_test) == print(peak_analysis_results)
+    assert (peak_analysis_test == peak_analysis_results) == True
