@@ -1,7 +1,6 @@
 import os
 import pytest
 import sys
-import json
 
 
 # Import the test data
