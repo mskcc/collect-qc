@@ -28,11 +28,12 @@ def process_metric(metric):
                 if type(insert_size_results) is list:
                     header = insert_size_results[0].keys()
                     rows = [
-                        insert_size_sample.values()
-                        for insert_size_sample in insert_size_results
+                        insert_size_sample_data.values()
+                        for insert_size_sample_data in insert_size_results
                     ]
                     print(tabulate(rows, header, tablefmt="simple"))
-                    results.append(insert_size_results)
+                    results_ops = {'metric':"insert_size", 'operator': operator, 'operand': operand, 'results': insert_size_results}
+                    results.append(results_ops)
                 else:
                     print(insert_size_results)
                 print("\n")
@@ -42,11 +43,12 @@ def process_metric(metric):
                 if type(hsmetrics_results) is list:
                     header = hsmetrics_results[0].keys()
                     rows = [
-                        hsmetrics_sample.values()
-                        for hsmetrics_sample in hsmetrics_results
+                        hsmetrics_sample_data.values()
+                        for hsmetrics_sample_data in hsmetrics_results
                     ]
                     print(tabulate(rows, header, tablefmt="simple"))
-                    results.append(hsmetrics_results)
+                    results_ops = {'metric':"hsmetrics", 'operator': operator, 'operand': operand, 'results': hsmetrics_results}
+                    results.append(results_ops)
                 else:
                     print(hsmetrics_results)
                 print("\n")
@@ -63,47 +65,62 @@ def process_metric(metric):
 
 
 def summary(results):
+    if len(results) == 0:
+        print(colored("No results from Collect QC.", color="red", attrs=["bold"]))
+        return
+
     fail = []
     warning = []
-    # TODO: Add function, metric, and reason to the dictionaries when appending to fail and warning
-    for result in results:
-        for sample in result:
-            if sample["AutoStatus"] == colored("FAIL", color="red", attrs=["bold"]):
-                fail.append(sample)
-            elif sample["AutoStatus"] == colored("ERROR", color="red", attrs=["bold"]):
-                fail.append(sample)
-            elif sample["AutoStatus"] == colored(
-                "WARNING", color="yellow", attrs=["bold"]
-            ):
-                warning.append(sample)
+    # TODO: Add reason to the dictionaries when appending to fail and warning
+    
+    for metric_result in results:
+        for sample_data in metric_result["results"]:
+            if sample_data["AutoStatus"] == colored("FAIL", color="red", attrs=["bold"]) or sample_data["AutoStatus"] == colored("ERROR", color="red", attrs=["bold"]):
+                sample_fail = {}
+                sample_fail["AutoStatus"] = sample_data["AutoStatus"]
+                sample_fail["Sample"] = sample_data["Sample"]
+                sample_fail["Metric"] = metric_result["metric"]
+                sample_fail["Function"] = metric_result["operator"]
+                sample_fail["Reason"] = metric_result["operand"]
+                fail.append(sample_fail)
+            elif sample_data["AutoStatus"] == colored("WARNING", color="yellow", attrs=["bold"]):
+                sample_warning = {}
+                sample_warning["AutoStatus"] = sample_data["AutoStatus"]
+                sample_warning["Sample"] = sample_data["Sample"]
+                sample_warning["Metric"] = metric_result["metric"]
+                sample_warning["Function"] = metric_result["operator"]
+                sample_warning["Reason"] = metric_result["operand"]
+                warning.append(sample_warning)
             else:
                 continue
+                
+            
 
     if len(fail) > 0 and len(warning) > 0:
         print(
-            f'{colored("Results:", attrs=["bold"])} {colored("Failed", color="red", attrs=["bold"])}'
+            f'{colored("Results:", attrs=["bold"])} {colored("FAILED", color="red", attrs=["bold"])}'
         )
         print("\n")
 
         print(colored("FAILED", color="red", attrs=["bold"]))
         header = fail[0].keys()
-        rows = [sample.values() for sample in fail]
+        rows = [sample_data.values() for sample_data in fail]
         print(tabulate(rows, header, tablefmt="simple"))
         print("\n")
 
         print(colored("WARNING", color="yellow", attrs=["bold"]))
         header = warning[0].keys()
-        rows = [sample.values() for sample in warning]
+        rows = [sample_data.values() for sample_data in warning]
         print(tabulate(rows, header, tablefmt="simple"))
         print("\n")
 
     elif len(fail) > 0:
-        print(f'Results: {colored("Failed", color="red", attrs=["bold"])}')
+        print(f'Results: {colored("FAILED", color="red", attrs=["bold"])}')
         print("\n")
 
         print(colored("FAILED", color="red", attrs=["bold"]))
         header = fail[0].keys()
-        rows = [sample.values() for sample in fail]
+        rows = [sample_data.values() for sample_data in fail]
         print(tabulate(rows, header, tablefmt="simple"))
         print("\n")
 
@@ -115,11 +132,11 @@ def summary(results):
 
         print(colored("WARNING", color="yellow", attrs=["bold"]))
         header = warning[0].keys()
-        rows = [sample.values() for sample in warning]
+        rows = [sample_data.values() for sample_data in warning]
         print(tabulate(rows, header, tablefmt="simple"))
         print("\n")
     else:
-        print(f'Results: {colored("Passed", color="green", attrs=["bold"])}')
+        print(f'Results: {colored("PASSED", color="green", attrs=["bold"])}')
         print("\n")
 
     print(colored("config.yaml", attrs=["bold"]))
