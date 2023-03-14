@@ -75,85 +75,86 @@ def process_metric(metric):
 
 
 def summary(results):
-    if len(results) == 0:
-        print(colored("No results from Collect QC.", color="red", attrs=["bold"]))
-        return
+    with open("qc_summary.txt", "w") as f:
+        if len(results) == 0:
+            f.write("No results from Collect QC.")
+            return
 
-    fail = []
-    warning = []
+        fail = []
+        warning = []
 
-    for metric_result in results:
-        for sample_data in metric_result["results"]:
-            if sample_data["AutoStatus"] == colored(
-                "FAIL", color="red", attrs=["bold"]
-            ) or sample_data["AutoStatus"] == colored(
-                "ERROR", color="red", attrs=["bold"]
-            ):
-                sample_fail = {}
-                sample_fail["AutoStatus"] = sample_data["AutoStatus"]
-                sample_fail["Sample"] = sample_data["Sample"]
-                sample_fail["Metric"] = metric_result["metric"]
-                sample_fail["Function"] = metric_result["operator"]
-                sample_fail["Reason"] = sample_data["Reason"]
-                fail.append(sample_fail)
-            elif sample_data["AutoStatus"] == colored(
-                "WARNING", color="yellow", attrs=["bold"]
-            ):
-                sample_warning = {}
-                sample_warning["AutoStatus"] = sample_data["AutoStatus"]
-                sample_warning["Sample"] = sample_data["Sample"]
-                sample_warning["Metric"] = metric_result["metric"]
-                sample_warning["Function"] = metric_result["operator"]
-                sample_warning["Reason"] = sample_data["Reason"]
-                warning.append(sample_warning)
-            else:
-                continue
+        for metric_result in results:
+            for sample_data in metric_result["results"]:
+                if sample_data["AutoStatus"] == colored(
+                    "FAIL", color="red", attrs=["bold"]
+                ):
+                    sample_fail = {}
+                    sample_fail["AutoStatus"] = "FAIL"
+                    sample_fail["Sample"] = sample_data["Sample"]
+                    sample_fail["Metric"] = metric_result["metric"]
+                    sample_fail["Function"] = metric_result["operator"]
+                    sample_fail["Reason"] = sample_data["Reason"]
+                    fail.append(sample_fail)
+                elif sample_data["AutoStatus"] == colored(
+                    "ERROR", color="red", attrs=["bold"]
+                ):
+                    sample_fail = {}
+                    sample_fail["AutoStatus"] = "ERROR"
+                    sample_fail["Sample"] = sample_data["Sample"]
+                    sample_fail["Metric"] = metric_result["metric"]
+                    sample_fail["Function"] = metric_result["operator"]
+                    sample_fail["Reason"] = sample_data["Reason"]
+                    fail.append(sample_fail)
+                elif sample_data["AutoStatus"] == colored(
+                    "WARNING", color="yellow", attrs=["bold"]
+                ):
+                    sample_warning = {}
+                    sample_warning["AutoStatus"] = "WARNING"
+                    sample_warning["Sample"] = sample_data["Sample"]
+                    sample_warning["Metric"] = metric_result["metric"]
+                    sample_warning["Function"] = metric_result["operator"]
+                    sample_warning["Reason"] = sample_data["Reason"]
+                    warning.append(sample_warning)
+                else:
+                    continue
 
-    if len(fail) > 0 and len(warning) > 0:
-        print(
-            f'{colored("Results:", attrs=["bold"])} {colored("FAILED", color="red", attrs=["bold"])}'
-        )
-        print("\n")
+        if len(fail) > 0 and len(warning) > 0:
+            f.write(f"Results: FAILED \n \n")
 
-        print(colored("FAILED", color="red", attrs=["bold"]))
-        header = fail[0].keys()
-        rows = [sample_data.values() for sample_data in fail]
-        print(tabulate(rows, header, tablefmt="simple"))
-        print("\n")
+            f.write("FAILED \n")
+            header = fail[0].keys()
+            rows = [sample_data.values() for sample_data in fail]
+            f.write(tabulate(rows, header, tablefmt="simple"))
+            f.write("\n \n")
 
-        print(colored("WARNING", color="yellow", attrs=["bold"]))
-        header = warning[0].keys()
-        rows = [sample_data.values() for sample_data in warning]
-        print(tabulate(rows, header, tablefmt="simple"))
-        print("\n")
+            f.write("WARNING \n")
+            header = warning[0].keys()
+            rows = [sample_data.values() for sample_data in warning]
+            f.write(tabulate(rows, header, tablefmt="simple"))
+            f.write("\n \n")
 
-    elif len(fail) > 0:
-        print(f'Results: {colored("FAILED", color="red", attrs=["bold"])}')
-        print("\n")
+        elif len(fail) > 0:
+            f.write("Results: FAILED \n \n")
 
-        print(colored("FAILED", color="red", attrs=["bold"]))
-        header = fail[0].keys()
-        rows = [sample_data.values() for sample_data in fail]
-        print(tabulate(rows, header, tablefmt="simple"))
-        print("\n")
+            f.write("FAILED \n")
+            header = fail[0].keys()
+            rows = [sample_data.values() for sample_data in fail]
+            f.write(tabulate(rows, header, tablefmt="simple"))
+            f.write("\n \n")
 
-    elif len(warning) > 0:
-        print(
-            f'Results: {colored("Passed with warnings", color="yellow", attrs=["bold"])}'
-        )
-        print("\n")
+        elif len(warning) > 0:
+            f.write("Results: Passed with warnings \n \n")
 
-        print(colored("WARNING", color="yellow", attrs=["bold"]))
-        header = warning[0].keys()
-        rows = [sample_data.values() for sample_data in warning]
-        print(tabulate(rows, header, tablefmt="simple"))
-        print("\n")
-    else:
-        print(f'Results: {colored("PASSED", color="green", attrs=["bold"])}')
-        print("\n")
+            f.write("WARNING \n")
+            header = warning[0].keys()
+            rows = [sample_data.values() for sample_data in warning]
+            f.write(tabulate(rows, header, tablefmt="simple"))
+            f.write("\n \n")
+        else:
+            f.write("Results: PASSED \n \n")
 
-    print(colored("config.yaml", attrs=["bold"]))
-    print(open("config.yaml").read())
+        f.write("\nconfig.yaml \n")
+        f.write(open("config.yaml").read())
 
     return
 
