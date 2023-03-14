@@ -32,7 +32,12 @@ def process_metric(metric):
                         for insert_size_sample_data in insert_size_results
                     ]
                     print(tabulate(rows, header, tablefmt="simple"))
-                    results_ops = {'metric':"insert_size", 'operator': operator, 'operand': operand, 'results': insert_size_results}
+                    results_ops = {
+                        "metric": "insert_size",
+                        "operator": operator,
+                        "operand": operand,
+                        "results": insert_size_results,
+                    }
                     results.append(results_ops)
                 else:
                     print(insert_size_results)
@@ -47,7 +52,12 @@ def process_metric(metric):
                         for hsmetrics_sample_data in hsmetrics_results
                     ]
                     print(tabulate(rows, header, tablefmt="simple"))
-                    results_ops = {'metric':"hsmetrics", 'operator': operator, 'operand': operand, 'results': hsmetrics_results}
+                    results_ops = {
+                        "metric": "hsmetrics",
+                        "operator": operator,
+                        "operand": operand,
+                        "results": hsmetrics_results,
+                    }
                     results.append(results_ops)
                 else:
                     print(hsmetrics_results)
@@ -71,30 +81,33 @@ def summary(results):
 
     fail = []
     warning = []
-    # TODO: Add reason to the dictionaries when appending to fail and warning
-    
+
     for metric_result in results:
         for sample_data in metric_result["results"]:
-            if sample_data["AutoStatus"] == colored("FAIL", color="red", attrs=["bold"]) or sample_data["AutoStatus"] == colored("ERROR", color="red", attrs=["bold"]):
+            if sample_data["AutoStatus"] == colored(
+                "FAIL", color="red", attrs=["bold"]
+            ) or sample_data["AutoStatus"] == colored(
+                "ERROR", color="red", attrs=["bold"]
+            ):
                 sample_fail = {}
                 sample_fail["AutoStatus"] = sample_data["AutoStatus"]
                 sample_fail["Sample"] = sample_data["Sample"]
                 sample_fail["Metric"] = metric_result["metric"]
                 sample_fail["Function"] = metric_result["operator"]
-                sample_fail["Reason"] = metric_result["operand"]
+                sample_fail["Reason"] = sample_data["Reason"]
                 fail.append(sample_fail)
-            elif sample_data["AutoStatus"] == colored("WARNING", color="yellow", attrs=["bold"]):
+            elif sample_data["AutoStatus"] == colored(
+                "WARNING", color="yellow", attrs=["bold"]
+            ):
                 sample_warning = {}
                 sample_warning["AutoStatus"] = sample_data["AutoStatus"]
                 sample_warning["Sample"] = sample_data["Sample"]
                 sample_warning["Metric"] = metric_result["metric"]
                 sample_warning["Function"] = metric_result["operator"]
-                sample_warning["Reason"] = metric_result["operand"]
+                sample_warning["Reason"] = sample_data["Reason"]
                 warning.append(sample_warning)
             else:
                 continue
-                
-            
 
     if len(fail) > 0 and len(warning) > 0:
         print(

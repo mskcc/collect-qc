@@ -71,11 +71,22 @@ class Metric:
                                             operand,
                                         )
                                         sample_cov = fun(mean_target_coverage)
+                                        if sample_cov == colored(
+                                            "ERROR", color="red", attrs=["bold"]
+                                        ):
+                                            reason = f'Mean Target Coverage of {mean_target_coverage} fell below the {operand["error"]} threshold.'
+                                        elif sample_cov == colored(
+                                            "WARNING", color="yellow", attrs=["bold"]
+                                        ):
+                                            reason = f'Mean Target Coverage of {mean_target_coverage} fell below the {operand["warn"]} threshold.'
+                                        else:
+                                            reason = ""
                                         hsmetrics_data.append(
                                             {
                                                 "AutoStatus": sample_cov,
                                                 "Sample": run_file.split(".")[0],
                                                 "Mean Target Coverage": mean_target_coverage,
+                                                "Reason": reason,
                                             }
                                         )
                                 else:
@@ -158,6 +169,7 @@ class Metric:
                                     "Sample": run_file.split(".")[0],
                                     "Peaks": peak_amt,
                                     "Max Peak": max_peak,
+                                    "Reason": "",
                                 }
                             )
                         else:
@@ -169,6 +181,7 @@ class Metric:
                                     "Sample": run_file.split(".")[0],
                                     "Peaks": peak_amt,
                                     "Max Peak": max_peak,
+                                    "Reason": f"{peak_amt} peaks detected. Expected 1 peak.",
                                 }
                             )
         ax.set_facecolor("#eeeeee")
