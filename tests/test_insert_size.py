@@ -24,4 +24,14 @@ def test_peak_analysis():
     assert os.path.exists("plots/insert_size.png")
     os.remove("plots/insert_size.png")
     os.rmdir("plots")
-    assert print(peak_analysis_test) == print(peak_analysis_results)
+
+    # GitHub Actions will test the results out of order, so we need to use dictionaries
+    dict_peak_analysis_test = {}
+    dict_peak_analysis_results = {}
+    for i in range(len(peak_analysis_test)):
+        dict_peak_analysis_test[peak_analysis_test[i]["Sample"]] = peak_analysis_test[i]
+    
+    for i in range(len(peak_analysis_results)):
+        dict_peak_analysis_results[peak_analysis_results[i]["Sample"]] = peak_analysis_results[i]
+
+    assert dict_peak_analysis_test == dict_peak_analysis_results
