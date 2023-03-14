@@ -24,4 +24,4 @@ def test_peak_analysis():
     assert os.path.exists("plots/insert_size.png")
     os.remove("plots/insert_size.png")
     os.rmdir("plots")
-    assert (peak_analysis_test == peak_analysis_results) == True
+    assert str(peak_analysis_test) == str(peak_analysis_results)
