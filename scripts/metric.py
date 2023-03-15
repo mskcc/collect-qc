@@ -22,6 +22,7 @@ class Metric:
     def hsmetrics(self, operator, operand):
         runs = os.listdir(self.qc_folder)
         hsmetrics_data = []
+        fig, ax = plt.subplots(figsize=(20, 10), sharex=True, sharey=True)
         for run in runs:
             run_path = os.path.join(self.qc_folder, run)
             for run_file in os.listdir(run_path):
@@ -107,7 +108,23 @@ class Metric:
                                 color="red",
                                 attrs=["bold"],
                             )
+        # TODO: Change the hue in the barplot
+        if operand["column"] == "mean_target_coverage":
+            sns.barplot(data=pd.DataFrame(hsmetrics_data), x="Sample", y="Mean Target Coverage", zorder=2)
+            plt.axhline(y=operand["warn"], color="yellow", linestyle="-", zorder=2)
+            plt.axhline(y=operand["error"], color="red", linestyle="-", zorder=2)
+            ax.set_facecolor("#eeeeee")
+            plt.grid(zorder=0)
+            plt.tight_layout(pad=3)
+            plt.title("Mean Target Coverage", loc="left", fontsize=20)
+            plt.ylabel("Mean Coverage")
+            plt.xlabel("")
 
+            if not os.path.exists("CollectQC_Plots"):
+                os.mkdir("CollectQC_Plots")
+            plt.savefig("CollectQC_Plots/mean_target_coverage.png")
+
+        
         return hsmetrics_data
 
     def insert_size(self, operator, operand):
