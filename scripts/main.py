@@ -94,7 +94,6 @@ class CollectQC:
                         "FAIL", color="red", attrs=["bold"]
                     ):
                         sample_fail = {}
-                        sample_fail["AutoStatus"] = "FAIL"
                         sample_fail["Sample"] = sample_data["Sample"]
                         sample_fail["Metric"] = metric_result["metric"]
                         sample_fail["Function"] = metric_result["operator"]
@@ -104,7 +103,6 @@ class CollectQC:
                         "ERROR", color="red", attrs=["bold"]
                     ):
                         sample_fail = {}
-                        sample_fail["AutoStatus"] = "ERROR"
                         sample_fail["Sample"] = sample_data["Sample"]
                         sample_fail["Metric"] = metric_result["metric"]
                         sample_fail["Function"] = metric_result["operator"]
@@ -114,7 +112,6 @@ class CollectQC:
                         "WARNING", color="yellow", attrs=["bold"]
                     ):
                         sample_warning = {}
-                        sample_warning["AutoStatus"] = "WARNING"
                         sample_warning["Sample"] = sample_data["Sample"]
                         sample_warning["Metric"] = metric_result["metric"]
                         sample_warning["Function"] = metric_result["operator"]
