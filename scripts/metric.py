@@ -108,9 +108,17 @@ class Metric:
                                 color="red",
                                 attrs=["bold"],
                             )
-        # TODO: Change the hue in the barplot
+
+        # Make plots
         if operand["column"] == "mean_target_coverage":
-            sns.barplot(data=pd.DataFrame(hsmetrics_data), x="Sample", y="Mean Target Coverage", zorder=2)
+            sns.barplot(
+                data=pd.DataFrame(hsmetrics_data),
+                x="Sample",
+                y="Mean Target Coverage",
+                zorder=2,
+                ax=ax,
+                color="#616161",
+            )
             plt.axhline(y=operand["warn"], color="yellow", linestyle="-", zorder=2)
             plt.axhline(y=operand["error"], color="red", linestyle="-", zorder=2)
             ax.set_facecolor("#eeeeee")
@@ -124,7 +132,6 @@ class Metric:
                 os.mkdir("CollectQC_Plots")
             plt.savefig("CollectQC_Plots/mean_target_coverage.png")
 
-        
         return hsmetrics_data
 
     def insert_size(self, operator, operand):
