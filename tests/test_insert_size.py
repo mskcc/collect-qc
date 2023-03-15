@@ -21,9 +21,9 @@ def test_peak_analysis():
     peak_analysis_test = metric.insert_size(
         operator="peak_analysis", operand={"columns": [1, 2]}
     )
-    assert os.path.exists("plots/insert_size.png")
-    os.remove("plots/insert_size.png")
-    os.rmdir("plots")
+    assert os.path.exists("CollectQC_Plots/insert_size.png")
+    os.remove("CollectQC_Plots/insert_size.png")
+    os.rmdir("CollectQC_Plots")
 
     # GitHub Actions will test the results out of order, so we need to use dictionaries
     dict_peak_analysis_test = {}

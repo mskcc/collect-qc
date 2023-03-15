@@ -190,9 +190,9 @@ class Metric:
         plt.grid()
         plt.tight_layout(pad=3)
         plt.title("Insert Size Distribution", loc="left", fontsize=20)
-        if not os.path.exists("plots"):
-            os.mkdir("plots")
-        plt.savefig("plots/insert_size.png")
+        if not os.path.exists("CollectQC_Plots"):
+            os.mkdir("CollectQC_Plots")
+        plt.savefig("CollectQC_Plots/insert_size.png")
 
         return insert_size_data
 
