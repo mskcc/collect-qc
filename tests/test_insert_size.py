@@ -22,7 +22,9 @@ def test_peak_analysis():
         operator="peak_analysis", operand={"columns": [1, 2]}
     )
     assert os.path.exists("CollectQC_Plots/insert_size.png")
-    os.remove("CollectQC_Plots/insert_size.png")
+    # Remove all plots in the CollectQC_Plots folder
+    for file in os.listdir("CollectQC_Plots"):
+        os.remove(os.path.join("CollectQC_Plots", file))
     os.rmdir("CollectQC_Plots")
 
     # GitHub Actions will test the results out of order, so we need to use dictionaries
@@ -30,8 +32,10 @@ def test_peak_analysis():
     dict_peak_analysis_results = {}
     for i in range(len(peak_analysis_test)):
         dict_peak_analysis_test[peak_analysis_test[i]["Sample"]] = peak_analysis_test[i]
-    
+
     for i in range(len(peak_analysis_results)):
-        dict_peak_analysis_results[peak_analysis_results[i]["Sample"]] = peak_analysis_results[i]
+        dict_peak_analysis_results[
+            peak_analysis_results[i]["Sample"]
+        ] = peak_analysis_results[i]
 
     assert dict_peak_analysis_test == dict_peak_analysis_results
