@@ -67,6 +67,13 @@ class CollectQC:
                     else:
                         print(hsmetrics_results)
                     print("\n")
+                elif file_specifier == "concordance":
+                    print(colored("Concordance", attrs=["bold"]))
+                    # TODO: call the concordance function
+                    concord_results = metric.concordance(
+                        operator=operator, operand=operand
+                    )
+                    
                 else:
                     print(
                         colored(

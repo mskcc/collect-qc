@@ -1,6 +1,7 @@
 from termcolor import colored
 from io import StringIO
 import matplotlib.pyplot as plt
+import re
 import seaborn as sns
 import os
 import pandas as pd
@@ -18,6 +19,27 @@ class Metric:
             self.config = yaml.safe_load(f)
         self.qc_folder = os.path.join(os.getcwd(), self.config["qc_folder"])
         return self.config
+    
+    def concordance(self, operator, operand):
+        runs = os.listdir(self.qc_folder)
+        for run in runs:
+            run_path = os.path.join(self.qc_folder, run)
+            for run_file in os.listdir(run_path):
+                if run_file.endswith("_concordance.txt"):
+                    concord_file = open(os.path.join(run_path, run_file))
+                    concord_data = pd.read_csv(StringIO(concord_file.read()), sep="\t")
+                    patient_N_full = concord_data.loc[:, "concordance"].iloc[0]
+                    patient_N = re.search(r"Patient_(\d+)", patient_N_full).group()
+                    # TODO: regex to get all columns including patient_N and not including patient_N
+                    filter_match_data = concord_data.filter(regex=patient_N)
+                    match_data = pd.concat([concord_data.iloc[:, 0], filter_match_data], axis=1)
+                    unmatch_data = concord_data.filter(regex="^((?!"+patient_N+").)*$")
+                    print(match_data)
+                    print(unmatch_data)
+                    print(operator)
+                    print(operand)
+
+        return
 
     def hsmetrics(self, operator, operand):
         runs = os.listdir(self.qc_folder)
