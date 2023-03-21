@@ -39,54 +39,61 @@ class Metric:
                         regex="^((?!" + patient_N + ").)*$"
                     )
 
-                    fun = Function("match_sample_matrix", operand)
-                    data = {"match": match_data, "unmatch": unmatch_data}
-                    (
-                        match_error_cols,
-                        match_warn_cols,
-                        unmatch_error_cols,
-                        unmatch_warn_cols,
-                    ) = fun(data)
+                    if operator == "match_sample_matrix":
+                        fun = Function("match_sample_matrix", operand)
+                        data = {"match": match_data, "unmatch": unmatch_data}
+                        (
+                            match_error_cols,
+                            match_warn_cols,
+                            unmatch_error_cols,
+                            unmatch_warn_cols,
+                        ) = fun(data)
 
-                    if match_warn_cols:
-                        concordance_data.append(
-                            {
-                                "AutoStatus": colored(
-                                    "WARNING", color="yellow", attrs=["bold"]
-                                ),
-                                "Sample": patient_N_full,
-                                "Reason": f"Matched with {', '.join(match_warn_cols)} that fall between the {operand['match_error_lt']} and {operand['match_warn_lt']} thresholds.",
-                            }
-                        )
-                    if match_error_cols:
-                        concordance_data.append(
-                            {
-                                "AutoStatus": colored(
-                                    "ERROR", color="red", attrs=["bold"]
-                                ),
-                                "Sample": patient_N_full,
-                                "Reason": f"Matched with {', '.join(match_error_cols)} that fall between the {operand['match_error_lt']} and {operand['match_warn_lt']} thresholds.",
-                            }
-                        )
-                    if unmatch_warn_cols:
-                        concordance_data.append(
-                            {
-                                "AutoStatus": colored(
-                                    "WARNING", color="yellow", attrs=["bold"]
-                                ),
-                                "Sample": patient_N_full,
-                                "Reason": f"Mismatched with {', '.join(unmatch_warn_cols)} that fall between the {operand['unmatch_warn_gt']} and {operand['unmatch_error_gt']} thresholds.",
-                            }
-                        )
-                    if unmatch_error_cols:
-                        concordance_data.append(
-                            {
-                                "AutoStatus": colored(
-                                    "ERROR", color="red", attrs=["bold"]
-                                ),
-                                "Sample": patient_N_full,
-                                "Reason": f"Mismatched with {', '.join(unmatch_error_cols)} that fall between the {operand['unmatch_error_gt']} and {operand['unmatch_warn_gt']} thresholds.",
-                            }
+                        if match_warn_cols:
+                            concordance_data.append(
+                                {
+                                    "AutoStatus": colored(
+                                        "WARNING", color="yellow", attrs=["bold"]
+                                    ),
+                                    "Sample": patient_N_full,
+                                    "Reason": f"Matched with {', '.join(match_warn_cols)} within the {operand['match_error_lt']} and {operand['match_warn_lt']} thresholds.",
+                                }
+                            )
+                        if match_error_cols:
+                            concordance_data.append(
+                                {
+                                    "AutoStatus": colored(
+                                        "ERROR", color="red", attrs=["bold"]
+                                    ),
+                                    "Sample": patient_N_full,
+                                    "Reason": f"Matched with {', '.join(match_error_cols)} within the {operand['match_error_lt']} and {operand['match_warn_lt']} thresholds.",
+                                }
+                            )
+                        if unmatch_warn_cols:
+                            concordance_data.append(
+                                {
+                                    "AutoStatus": colored(
+                                        "WARNING", color="yellow", attrs=["bold"]
+                                    ),
+                                    "Sample": patient_N_full,
+                                    "Reason": f"Mismatched with {', '.join(unmatch_warn_cols)} within the {operand['unmatch_warn_gt']} and {operand['unmatch_error_gt']} thresholds.",
+                                }
+                            )
+                        if unmatch_error_cols:
+                            concordance_data.append(
+                                {
+                                    "AutoStatus": colored(
+                                        "ERROR", color="red", attrs=["bold"]
+                                    ),
+                                    "Sample": patient_N_full,
+                                    "Reason": f"Mismatched with {', '.join(unmatch_error_cols)} within the {operand['unmatch_error_gt']} and {operand['unmatch_warn_gt']} thresholds.",
+                                }
+                            )
+                    else:
+                        return colored(
+                            f'"{operator}" is not a valid operator for "concordance".',
+                            color="red",
+                            attrs=["bold"],
                         )
 
         return concordance_data

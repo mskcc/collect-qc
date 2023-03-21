@@ -73,6 +73,16 @@ class CollectQC:
                         operator=operator, operand=operand
                     )
                     if type(concord_results) is list:
+                        if len(concord_results) == 0:
+                            print(
+                                colored(
+                                    "PASS",
+                                    color="green",
+                                    attrs=["bold"],
+                                )
+                            )
+                            print("\n")
+                            break
                         header = concord_results[0].keys()
                         rows = [
                             concord_sample_data.values()
