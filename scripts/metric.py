@@ -56,7 +56,7 @@ class Metric:
                                         "WARNING", color="yellow", attrs=["bold"]
                                     ),
                                     "Sample": patient_N_full,
-                                    "Reason": f"Matched with {', '.join(match_warn_cols)} within the {operand['match_error_lt']} and {operand['match_warn_lt']} thresholds.",
+                                    "Reason": f"{', '.join(match_warn_cols)} fell within the {operand['match_error_lt']} and {operand['match_warn_lt']} match thresholds.",
                                 }
                             )
                         if match_error_cols:
@@ -66,7 +66,7 @@ class Metric:
                                         "ERROR", color="red", attrs=["bold"]
                                     ),
                                     "Sample": patient_N_full,
-                                    "Reason": f"Matched with {', '.join(match_error_cols)} within the {operand['match_error_lt']} and {operand['match_warn_lt']} thresholds.",
+                                    "Reason": f"{', '.join(match_error_cols)} fell below the {operand['match_error_lt']} match threshold.",
                                 }
                             )
                         if unmatch_warn_cols:
@@ -76,7 +76,7 @@ class Metric:
                                         "WARNING", color="yellow", attrs=["bold"]
                                     ),
                                     "Sample": patient_N_full,
-                                    "Reason": f"Mismatched with {', '.join(unmatch_warn_cols)} within the {operand['unmatch_warn_gt']} and {operand['unmatch_error_gt']} thresholds.",
+                                    "Reason": f"{', '.join(unmatch_warn_cols)} fell within the {operand['unmatch_warn_gt']} and {operand['unmatch_error_gt']} mismatch thresholds.",
                                 }
                             )
                         if unmatch_error_cols:
@@ -86,7 +86,7 @@ class Metric:
                                         "ERROR", color="red", attrs=["bold"]
                                     ),
                                     "Sample": patient_N_full,
-                                    "Reason": f"Mismatched with {', '.join(unmatch_error_cols)} within the {operand['unmatch_error_gt']} and {operand['unmatch_warn_gt']} thresholds.",
+                                    "Reason": f"{', '.join(unmatch_error_cols)} exceeded the {operand['unmatch_error_gt']} mismatch threshold.",
                                 }
                             )
                     else:
@@ -329,7 +329,7 @@ class Function:
 
         match_error_cols = (
             match_data.iloc[:, 1:]
-            .where(match_data.iloc[:, 1:] <= match_error)
+            .where(match_data.iloc[:, 1:] < match_error)
             .dropna(axis=1)
             .columns.tolist()
         )
@@ -352,8 +352,8 @@ class Function:
         unmatch_warn_cols = (
             unmatch_data.iloc[:, 1:]
             .where(
-                (unmatch_data.iloc[:, 1:] > unmatch_warn)
-                & (unmatch_data.iloc[:, 1:] <= unmatch_error)
+                (unmatch_data.iloc[:, 1:] >= unmatch_warn)
+                & (unmatch_data.iloc[:, 1:] < unmatch_error)
             )
             .dropna(axis=1)
             .columns.tolist()
