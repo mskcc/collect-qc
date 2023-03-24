@@ -38,8 +38,52 @@ class Metric:
                     unmatch_data = concord_data.filter(
                         regex="^((?!" + patient_N + ").)*$"
                     )
-                    
+
                     if operator == "match_sample_matrix":
+                        # Error handling for missing operand keys and the threshold values
+                        if operand.keys() == {
+                            "match_error_lt",
+                            "match_warn_lt",
+                            "unmatch_warn_gt",
+                            "unmatch_error_gt",
+                        }:
+                            if operand["match_error_lt"] == operand["match_warn_lt"]:
+                                return colored(
+                                    '"match_error_lt" and "match_warn_lt" cannot be the same value."',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            elif operand["match_error_lt"] > operand["match_warn_lt"]:
+                                return colored(
+                                    '"match_error_lt" must be less than "match_warn_lt".',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            elif (
+                                operand["unmatch_warn_gt"]
+                                == operand["unmatch_error_gt"]
+                            ):
+                                return colored(
+                                    '"unmatch_warn_gt" and "unmatch_error_gt" cannot be the same value."',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            elif (
+                                operand["unmatch_warn_gt"] > operand["unmatch_error_gt"]
+                            ):
+                                return colored(
+                                    '"unmatch_warn_gt" must be greater than "unmatch_error_gt".',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                        else:
+                            return colored(
+                                "The match_sample_matrix function requires the following thresholds: 'match_error_lt', 'match_warn_lt', 'unmatch_warn_gt', and 'unmatch_error_gt'.",
+                                color="red",
+                                attrs=["bold"],
+                            )
+
+                        # Call the match_sample_matrix function
                         fun = Function("match_sample_matrix", operand)
                         data = {"match": match_data, "unmatch": unmatch_data}
                         (
