@@ -38,7 +38,7 @@ class Metric:
                     unmatch_data = concord_data.filter(
                         regex="^((?!" + patient_N + ").)*$"
                     )
-
+                    
                     if operator == "match_sample_matrix":
                         fun = Function("match_sample_matrix", operand)
                         data = {"match": match_data, "unmatch": unmatch_data}
