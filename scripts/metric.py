@@ -1,6 +1,7 @@
 from termcolor import colored
 from io import StringIO
 import matplotlib.pyplot as plt
+import numpy as np
 import re
 import seaborn as sns
 import os
@@ -92,6 +93,31 @@ class Metric:
                             unmatch_error_cols,
                             unmatch_warn_cols,
                         ) = fun(data)
+
+                        # Plot a heatmap of concord_data
+                        fig, ax = plt.subplots(
+                            figsize=(20, 10), sharex=True, sharey=True
+                        )
+                        concord_data.set_index("concordance", inplace=True)
+                        sns.heatmap(
+                            concord_data.transpose(),
+                            cmap="RdYlGn",
+                            ax=ax,
+                            cbar_kws={"label": "Percent Concordance"},
+                        )
+                        plt.grid(False)
+                        plt.tight_layout(pad=16)
+                        plt.title("Concordance among Samples", loc="left", fontsize=20)
+                        plt.xlabel("Normal Sample", labelpad=10)
+                        plt.ylabel("Tumor Samples", labelpad=10)
+                        plt.yticks(rotation=0)
+
+                        if not os.path.exists("CollectQC_Plots"):
+                            os.mkdir("CollectQC_Plots")
+                        plt.savefig(
+                            f"CollectQC_Plots/concordance_{patient_N_full}.png",
+                            bbox_inches="tight",
+                        )
 
                         if match_warn_cols:
                             concordance_data.append(
