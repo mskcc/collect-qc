@@ -27,6 +27,12 @@ def test_match_sample_matrix():
             "unmatch_error_gt": 60,
         },
     )
+    assert os.path.exists("CollectQC_Plots/concordance_s_C_Patient_1_N009_d07.png")
+    # Remove all plots in the CollectQC_Plots folder
+    for file in os.listdir("CollectQC_Plots"):
+        os.remove(os.path.join("CollectQC_Plots", file))
+    os.rmdir("CollectQC_Plots")
+
     # GitHub Actions will test the results out of order, so we need to use dictionaries
     dict_warn_error_case = {}
     dict_warn_error_match_matrix = {}
@@ -47,6 +53,13 @@ def test_match_sample_matrix():
             "unmatch_error_gt": 70,
         },
     )
+
+    assert os.path.exists("CollectQC_Plots/concordance_s_C_Patient_1_N008_d07.png")
+    # Remove all plots in the CollectQC_Plots folder
+    for file in os.listdir("CollectQC_Plots"):
+        os.remove(os.path.join("CollectQC_Plots", file))
+    os.rmdir("CollectQC_Plots")
+
     # GitHub Actions will test the results out of order, so we need to use dictionaries
     dict_pass_case = {}
     dict_pass_match_matrix = {}
