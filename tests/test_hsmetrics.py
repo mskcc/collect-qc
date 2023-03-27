@@ -22,6 +22,12 @@ def test_mean_target_coverage():
         operator="threshold",
         operand={"column": "mean_target_coverage", "warn": 700, "error": 500},
     )
+    assert os.path.exists("CollectQC_Plots/mean_target_coverage.png")
+    # Remove all plots in the CollectQC_Plots folder
+    for file in os.listdir("CollectQC_Plots"):
+        os.remove(os.path.join("CollectQC_Plots", file))
+    os.rmdir("CollectQC_Plots")
+
     # GitHub Actions will test the results out of order, so we need to use dictionaries
     dict_warn_error_case = {}
     dict_warn_error_mean_coverages = {}
@@ -37,6 +43,12 @@ def test_mean_target_coverage():
         operator="threshold",
         operand={"column": "mean_target_coverage", "warn": 200, "error": 100},
     )
+    assert os.path.exists("CollectQC_Plots/mean_target_coverage.png")
+    # Remove all plots in the CollectQC_Plots folder
+    for file in os.listdir("CollectQC_Plots"):
+        os.remove(os.path.join("CollectQC_Plots", file))
+    os.rmdir("CollectQC_Plots")
+
     # GitHub Actions will test the results out of order, so we need to use dictionaries
     dict_pass_case = {}
     dict_pass_mean_coverages = {}

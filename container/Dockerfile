@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
 
-ARG BRANCH=feature/qc_summary
+ARG BRANCH=feature/plots/mean_target_coverage
 
 RUN apt-get clean \
     && apt-get update -qq \
