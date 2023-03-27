@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
 
-ARG BRANCH=testing/peak_analysis
+ARG BRANCH=feature/qc_summary
 
 RUN apt-get clean \
     && apt-get update -qq \
