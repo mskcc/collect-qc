@@ -166,6 +166,58 @@ class Metric:
                         )
 
         return concordance_data
+    
+    def gcbias(self, operator, operand):
+        runs = os.listdir(self.qc_folder)
+        gcbias_data = []
+        for run in runs:
+            run_path = os.path.join(self.qc_folder, run)
+            for run_file in os.listdir(run_path):
+                if run_file.endswith(".gcbiasmetrics"):
+                    with open(os.path.join(run_path, run_file)) as f:
+                        gcbias_flag = False
+                        gcbias_text = []
+                        for line in f:
+                            if line.startswith("## METRICS CLASS"):
+                                gcbias_flag = True
+                            elif gcbias_flag:
+                                gcbias_text.append(line)
+                        
+                        gcbias_df = pd.read_csv(StringIO("\n".join(gcbias_text)), sep="\t")
+                        
+                        if operator == "coverage_deviation":
+                            if operand["columns"] and operand["threshold"]:
+                                if set(operand["columns"]) != {"GC", "NORMALIZED_COVERAGE"}:
+                                    return colored(
+                                        f'The "columns" parameter must be set to [GC, NORMALIZED_COVERAGE].',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
+                                elif operand["threshold"] < 0 or operand["threshold"] > 1:
+                                    return colored(
+                                        f'The "threshold" parameter must be set to a value between 0 and 1.',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
+                                else:
+                                    fun = Function("coverage_deviation", operand)
+                                    fun_input = {"df": gcbias_df, "threshold": operand["threshold"], "columns": ["GC", "NORMALIZED_COVERAGE"]}
+                                    cov_dev = fun(fun_input)
+                                    # TODO: append result to gcbias_data
+                                    
+                            else:
+                                return colored(
+                                    "The coverage_deviation function requires the following inputs: 'columns' and 'threshold'.",
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                        else:
+                            return colored(
+                                f'"{operator}" is not a valid function for "gcbias".',
+                                color="red",
+                                attrs=["bold"],
+                            )
+        return
 
     def hsmetrics(self, operator, operand):
         runs = os.listdir(self.qc_folder)
@@ -375,18 +427,28 @@ class Function:
         self.operand = operand
 
     def __call__(self, data):
-        if self.operator == "peak_analysis":
-            return self.peak_analysis(data)
-        elif self.operator == "mean_target_coverage":
-            return self.mean_target_coverage(data)
+        if self.operator == "coverage_deviation":
+            return self.coverage_deviation(data)
         elif self.operator == "match_sample_matrix":
             return self.match_sample_matrix(data)
+        elif self.operator == "mean_target_coverage":
+            return self.mean_target_coverage(data)
+        elif self.operator == "peak_analysis":
+            return self.peak_analysis(data)
         else:
             return colored(
                 f"{self.operator} is not an available function.",
                 color="red",
                 attrs=["bold"],
             )
+        
+    def coverage_deviation(self, data):
+        # TODO: index the GC and NORMALIZED_COVERAGE columns
+        
+
+        # TODO: Compute the r2 score of the NORMALIZED_COVERAGE column with a horizontal line
+        
+        return
 
     def match_sample_matrix(self, data):
         match_data = data["match"]
