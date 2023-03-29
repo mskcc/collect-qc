@@ -103,23 +103,21 @@ class CollectQC:
                     gcbias_results = metric.gcbias(
                         operator=operator, operand=operand
                     )
-                    print(gcbias_results)
-                    # TODO: Output GCbias results
-                    # if type(gcbias_results) is list:
-                    #     header = gcbias_results[0].keys()
-                    #     rows = [
-                    #         gcbias_sample_data.values()
-                    #         for gcbias_sample_data in gcbias_results
-                    #     ]
-                    #     print(tabulate(rows, header, tablefmt="simple"))
-                    #     results_ops = {
-                    #         "metric": "gcbias",
-                    #         "operator": operator,
-                    #         "results": gcbias_results,
-                    #     }
-                    #     results.append(results_ops)
-                    # else:
-                    #     print(gcbias_results)
+                    if type(gcbias_results) is list:
+                        header = gcbias_results[0].keys()
+                        rows = [
+                            gcbias_sample_data.values()
+                            for gcbias_sample_data in gcbias_results
+                        ]
+                        print(tabulate(rows, header, tablefmt="simple"))
+                        results_ops = {
+                            "metric": "gcbias",
+                            "operator": operator,
+                            "results": gcbias_results,
+                        }
+                        results.append(results_ops)
+                    else:
+                        print(gcbias_results)
                     print("\n")
                 else:
                     print(

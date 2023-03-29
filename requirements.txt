@@ -1,7 +1,9 @@
 matplotlib
+numpy
 pandas
 pytest
 pyyaml
+scikit-learn
 scipy
 seaborn
 tabulate
