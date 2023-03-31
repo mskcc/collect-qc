@@ -176,92 +176,113 @@ class Metric:
         for run in runs:
             run_path = os.path.join(self.qc_folder, run)
             for run_file in os.listdir(run_path):
-                if run_file.endswith(".gcbiasmetrics"):
-                    with open(os.path.join(run_path, run_file)) as f:
-                        gcbias_flag = False
-                        gcbias_text = []
-                        for line in f:
-                            if line.startswith("## METRICS CLASS"):
-                                gcbias_flag = True
-                            elif gcbias_flag:
-                                gcbias_text.append(line)
+                if run_file.endswith(".hstmetrics"):
+                    gcbias_file = open(os.path.join(run_path, run_file))
+                    gcbias_df = pd.read_csv(gcbias_file, sep="\t")
 
-                        gcbias_df = pd.read_csv(
-                            StringIO("\n".join(gcbias_text)), sep="\t"
-                        )
-
-                        if operator == "coverage_deviation":
-                            if operand["columns"] and operand["threshold"]:
-                                if set(operand["columns"]) != {
-                                    "GC",
-                                    "NORMALIZED_COVERAGE",
-                                }:
-                                    return colored(
-                                        f'The "columns" parameter must be set to [GC, NORMALIZED_COVERAGE].',
-                                        color="red",
-                                        attrs=["bold"],
-                                    )
-                                elif (
-                                    operand["threshold"] < 0 or operand["threshold"] > 1
-                                ):
-                                    return colored(
-                                        f'The "threshold" parameter must be set to a value between 0 and 1.',
-                                        color="red",
-                                        attrs=["bold"],
-                                    )
-                                else:
-                                    fun = Function("coverage_deviation", operand)
-                                    fun_input = {
-                                        "df": gcbias_df,
-                                        "threshold": operand["threshold"],
-                                        "columns": ["GC", "NORMALIZED_COVERAGE"],
-                                    }
-                                    cov_dev = fun(fun_input)
-                                    if cov_dev["AutoStatus"] == colored("FAIL", color="red", attrs=["bold"]):
-                                        gcbias_data.append(
-                                            {
-                                                "AutoStatus": cov_dev["AutoStatus"],
-                                                "Sample": run_file.split(".")[0],
-                                                "Reason": f'The coverage deviation of {cov_dev["r2"]} is less than the {operand["threshold"]}.',
-                                            }
-                                        )
-                                    elif cov_dev["AutoStatus"] == colored("PASS", color="green", attrs=["bold"]):
-                                        gcbias_data.append(
-                                            {
-                                                "AutoStatus": cov_dev["AutoStatus"],
-                                                "Sample": run_file.split(".")[0],
-                                                "Reason": f'The coverage deviation of {cov_dev["r2"]} is greater than the {operand["threshold"]}.',
-                                            }
-                                        )
-                                    else:
-                                        return colored(
-                                            f'"Invalid result for "coverage_deviation".',
-                                            color="red",
-                                            attrs=["bold"],
-                                        )
-
-                                    legend_label = (
-                                        f'{run_file.split(".")[0]} r2: "r2_score"'
-                                    )
-                                    sns.lineplot(
-                                        data=gcbias_df,
-                                        x="GC",
-                                        y="NORMALIZED_COVERAGE",
-                                        ax=ax,
-                                        label=legend_label,
-                                    )
-                            else:
+                    if operator == "coverage_deviation":
+                        if operand["columns"] and operand["threshold"]:
+                            if set(operand["columns"]) != {
+                                "gc",
+                                "normalized_coverage",
+                            }:
                                 return colored(
-                                    "The coverage_deviation function requires the following inputs: 'columns' and 'threshold'.",
+                                    f'The "columns" parameter must be set to [gc, normalized_coverage].',
                                     color="red",
                                     attrs=["bold"],
                                 )
+                            elif (
+                                operand["threshold"] < 0 or operand["threshold"] > 1
+                            ):
+                                return colored(
+                                    f'The "threshold" parameter must be set to a value between 0 and 1.',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            else:
+                                # Bin GC data
+                                gc_bin_list = np.arange(0.3, 0.9, 0.05)
+                                gc_dict = {}
+                                nc_dict = {}
+                                first_bin = gc_bin_list[0]
+                                for single_bin in gc_bin_list:
+                                    gc_dict[single_bin] = []
+                                    nc_dict[single_bin] = []
+                                for gc, norm_coverage in zip(gcbias_df["%gc"], gcbias_df["normalized_coverage"]):
+                                    added_to_bin = False
+                                    for single_bin in np.flip(gc_bin_list):
+                                        if gc >= single_bin and not added_to_bin:
+                                            gc_dict[single_bin].append(gc)
+                                            nc_dict[single_bin].append(norm_coverage)
+                                            added_to_bin = True
+                                    if not added_to_bin:
+                                        gc_dict[first_bin].append(gc)
+                                        nc_dict[first_bin].append(norm_coverage)
+                                    gc_data = []
+                                nc_data = []
+                                for single_bin in gc_bin_list:
+                                    if gc_dict[single_bin] != [] and nc_dict[single_bin] != []:
+                                        gc_data.append(np.mean(gc_dict[single_bin]))
+                                        nc_data.append(np.mean(nc_dict[single_bin]))
+                                gc_bin_data = {"%gc": gc_data, "normalized_coverage": nc_data}
+                                gc_df = pd.DataFrame(gc_bin_data)
+                                
+                                fun = Function("coverage_deviation", operand)
+                                fun_input = {
+                                    "df": gc_df,
+                                    "threshold": operand["threshold"],
+                                    "columns": ["%gc", "normalized_coverage"],
+                                }
+                                cov_dev = fun(fun_input)
+                                if cov_dev["AutoStatus"] == colored(
+                                    "FAIL", color="red", attrs=["bold"]
+                                ):
+                                    gcbias_data.append(
+                                        {
+                                            "AutoStatus": cov_dev["AutoStatus"],
+                                            "Sample": run_file.split(".")[0],
+                                            "Reason": f'The coverage deviation of {cov_dev["r2"]} is less than the {operand["threshold"]}.',
+                                        }
+                                    )
+                                elif cov_dev["AutoStatus"] == colored(
+                                    "PASS", color="green", attrs=["bold"]
+                                ):
+                                    gcbias_data.append(
+                                        {
+                                            "AutoStatus": cov_dev["AutoStatus"],
+                                            "Sample": run_file.split(".")[0],
+                                            "Reason": f'The coverage deviation of {cov_dev["r2"]} is greater than the {operand["threshold"]}.',
+                                        }
+                                    )
+                                else:
+                                    return colored(
+                                        f'"Invalid result for "coverage_deviation".',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
+
+                                legend_label = (
+                                    f'{run_file.split(".")[0]} r2: {cov_dev["r2"]}'
+                                )
+                                sns.lineplot(
+                                    data=gc_df,
+                                    x="%gc",
+                                    y="normalized_coverage",
+                                    ax=ax,
+                                    label=legend_label,
+                                )
                         else:
                             return colored(
-                                f'"{operator}" is not a valid function for "gcbias".',
+                                "The coverage_deviation function requires the following inputs: 'columns' and 'threshold'.",
                                 color="red",
                                 attrs=["bold"],
                             )
+                    else:
+                        return colored(
+                            f'"{operator}" is not a valid function for "gcbias".',
+                            color="red",
+                            attrs=["bold"],
+                        )
 
         if operator == "coverage_deviation":
             ax.set_facecolor("#eeeeee")
@@ -476,7 +497,7 @@ class Metric:
                                 color="red",
                                 attrs=["bold"],
                             )
-        
+
         if operator == "peak_analysis":
             ax.set_facecolor("#eeeeee")
             plt.ylabel("")
@@ -513,10 +534,16 @@ class Function:
             )
 
     def coverage_deviation(self, data):
-        # TODO: Compute the r2 score of the NORMALIZED_COVERAGE column with a 
+        # TODO: Apply the transformation function to the dataframe
+        df = data["df"]
+
+        # Compute the r2 score of the NORMALIZED_COVERAGE column with a
         # horizontal line at the first row of the NORMALIZED_COVERAGE column
-        y_true = data["df"].loc[:, "NORMALIZED_COVERAGE"]
-        y_pred = [y_true.iloc[0]] * len(y_true)
+        y_true = df.loc[:, "normalized_coverage"]
+        # TODO: sort GC content then get the index with the minimum GC content
+        min_gc_idx = df.loc[:, "%gc"].idxmin()
+        print(df.loc[:, "%gc"].min())
+        y_pred = [y_true.iloc[min_gc_idx]] * len(y_true)
 
         # calculate r2 score
         r2 = r2_score(y_true, y_pred)
@@ -526,9 +553,15 @@ class Function:
 
         # if r2 < data["threshold"] then return FAIL, else return PASS
         if r2 < data["threshold"]:
-            return {"AutoStatus": colored("FAIL", color="red", attrs=["bold"]), "r2": r2}
+            return {
+                "AutoStatus": colored("FAIL", color="red", attrs=["bold"]),
+                "r2": r2,
+            }
         else:
-            return {"AutoStatus": colored("PASS", color="green", attrs=["bold"]), "r2": r2}
+            return {
+                "AutoStatus": colored("PASS", color="green", attrs=["bold"]),
+                "r2": r2,
+            }
 
     def match_sample_matrix(self, data):
         match_data = data["match"]
