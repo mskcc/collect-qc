@@ -6,7 +6,6 @@ import pandas as pd
 import re
 from scipy.signal import find_peaks
 import seaborn as sns
-from sklearn.metrics import r2_score
 from termcolor import colored
 import yaml
 
@@ -170,6 +169,34 @@ class Metric:
         return concordance_data
 
     def gcbias(self, operator, operand):
+        def gcBin(df):
+            gc_bin_list = np.arange(0.3, 0.9, 0.05)
+            gc_dict = {}
+            nc_dict = {}
+            first_bin = gc_bin_list[0]
+            for single_bin in gc_bin_list:
+                gc_dict[single_bin] = []
+                nc_dict[single_bin] = []
+            for gc, norm_coverage in zip(df["%gc"], df["normalized_coverage"]):
+                added_to_bin = False
+                for single_bin in np.flip(gc_bin_list):
+                    if gc >= single_bin and not added_to_bin:
+                        gc_dict[single_bin].append(gc)
+                        nc_dict[single_bin].append(norm_coverage)
+                        added_to_bin = True
+                if not added_to_bin:
+                    gc_dict[first_bin].append(gc)
+                    nc_dict[first_bin].append(norm_coverage)
+                gc_data = []
+            nc_data = []
+            for single_bin in gc_bin_list:
+                if gc_dict[single_bin] != [] and nc_dict[single_bin] != []:
+                    gc_data.append(np.mean(gc_dict[single_bin]))
+                    nc_data.append(np.mean(nc_dict[single_bin]))
+            gc_bin_data = {"%gc": gc_data, "normalized_coverage": nc_data}
+            gc_df = pd.DataFrame(gc_bin_data)
+            return gc_df
+
         runs = os.listdir(self.qc_folder)
         gcbias_data = []
         fig, ax = plt.subplots(figsize=(20, 10), sharex=True, sharey=True)
@@ -191,45 +218,11 @@ class Metric:
                                     color="red",
                                     attrs=["bold"],
                                 )
-                            elif (
-                                operand["threshold"] < 0 or operand["threshold"] > 1
-                            ):
-                                return colored(
-                                    f'The "threshold" parameter must be set to a value between 0 and 1.',
-                                    color="red",
-                                    attrs=["bold"],
-                                )
                             else:
-                                # Bin GC data
-                                gc_bin_list = np.arange(0.3, 0.9, 0.05)
-                                gc_dict = {}
-                                nc_dict = {}
-                                first_bin = gc_bin_list[0]
-                                for single_bin in gc_bin_list:
-                                    gc_dict[single_bin] = []
-                                    nc_dict[single_bin] = []
-                                for gc, norm_coverage in zip(gcbias_df["%gc"], gcbias_df["normalized_coverage"]):
-                                    added_to_bin = False
-                                    for single_bin in np.flip(gc_bin_list):
-                                        if gc >= single_bin and not added_to_bin:
-                                            gc_dict[single_bin].append(gc)
-                                            nc_dict[single_bin].append(norm_coverage)
-                                            added_to_bin = True
-                                    if not added_to_bin:
-                                        gc_dict[first_bin].append(gc)
-                                        nc_dict[first_bin].append(norm_coverage)
-                                    gc_data = []
-                                nc_data = []
-                                for single_bin in gc_bin_list:
-                                    if gc_dict[single_bin] != [] and nc_dict[single_bin] != []:
-                                        gc_data.append(np.mean(gc_dict[single_bin]))
-                                        nc_data.append(np.mean(nc_dict[single_bin]))
-                                gc_bin_data = {"%gc": gc_data, "normalized_coverage": nc_data}
-                                gc_df = pd.DataFrame(gc_bin_data)
-                                
+                                binned = gcBin(gcbias_df)
                                 fun = Function("coverage_deviation", operand)
                                 fun_input = {
-                                    "df": gc_df,
+                                    "df": binned,
                                     "threshold": operand["threshold"],
                                     "columns": ["%gc", "normalized_coverage"],
                                 }
@@ -241,7 +234,7 @@ class Metric:
                                         {
                                             "AutoStatus": cov_dev["AutoStatus"],
                                             "Sample": run_file.split(".")[0],
-                                            "Reason": f'The coverage deviation of {cov_dev["r2"]} is less than the {operand["threshold"]}.',
+                                            "Reason": f'The coverage deviation of {cov_dev["auc"]} is greater than the {operand["threshold"]} threshold.',
                                         }
                                     )
                                 elif cov_dev["AutoStatus"] == colored(
@@ -251,7 +244,7 @@ class Metric:
                                         {
                                             "AutoStatus": cov_dev["AutoStatus"],
                                             "Sample": run_file.split(".")[0],
-                                            "Reason": f'The coverage deviation of {cov_dev["r2"]} is greater than the {operand["threshold"]}.',
+                                            "Reason": f'The coverage deviation of {cov_dev["auc"]} is less than the {operand["threshold"]} threshold.',
                                         }
                                     )
                                 else:
@@ -262,10 +255,10 @@ class Metric:
                                     )
 
                                 legend_label = (
-                                    f'{run_file.split(".")[0]} r2: {cov_dev["r2"]}'
+                                    f'{run_file.split(".")[0]}'
                                 )
                                 sns.lineplot(
-                                    data=gc_df,
+                                    data=binned,
                                     x="%gc",
                                     y="normalized_coverage",
                                     ax=ax,
@@ -286,11 +279,11 @@ class Metric:
 
         if operator == "coverage_deviation":
             ax.set_facecolor("#eeeeee")
-            plt.ylabel("Normalized Coverage")
-            plt.xlabel("GC Content")
+            plt.ylabel("Normalized Coverage", labelpad=10, fontsize=12)
+            plt.xlabel("GC Content", labelpad=10, fontsize=12)
             plt.grid()
             plt.tight_layout(pad=3)
-            plt.title("Normalized Coverage vs. GC Content", loc="left", fontsize=20)
+            plt.title("Normalized Coverage vs GC-Content", loc="left", fontsize=20)
             if not os.path.exists("CollectQC_Plots"):
                 os.mkdir("CollectQC_Plots")
             plt.savefig(
@@ -534,33 +527,18 @@ class Function:
             )
 
     def coverage_deviation(self, data):
-        # TODO: Apply the transformation function to the dataframe
         df = data["df"]
 
-        # Compute the r2 score of the NORMALIZED_COVERAGE column with a
-        # horizontal line at the first row of the NORMALIZED_COVERAGE column
-        y_true = df.loc[:, "normalized_coverage"]
-        # TODO: sort GC content then get the index with the minimum GC content
-        min_gc_idx = df.loc[:, "%gc"].idxmin()
-        print(df.loc[:, "%gc"].min())
-        y_pred = [y_true.iloc[min_gc_idx]] * len(y_true)
-
-        # calculate r2 score
-        r2 = r2_score(y_true, y_pred)
-
-        print(r2)
-        print("\n")
-
-        # if r2 < data["threshold"] then return FAIL, else return PASS
-        if r2 < data["threshold"]:
+        auc = np.trapz(x=df.loc[:, "%gc"], y=df.loc[:, "normalized_coverage"])
+        if auc > data["threshold"]:
             return {
                 "AutoStatus": colored("FAIL", color="red", attrs=["bold"]),
-                "r2": r2,
+                "auc": round(auc, 3),
             }
         else:
             return {
                 "AutoStatus": colored("PASS", color="green", attrs=["bold"]),
-                "r2": r2,
+                "auc": round(auc, 3),
             }
 
     def match_sample_matrix(self, data):

@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
 
-ARG BRANCH=feature/concordance
+ARG BRANCH=feature/gcbias
 
 RUN apt-get clean \
     && apt-get update -qq \
