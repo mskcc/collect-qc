@@ -287,7 +287,7 @@ class Metric:
             if not os.path.exists("CollectQC_Plots"):
                 os.mkdir("CollectQC_Plots")
             plt.savefig(
-                f"CollectQC_Plots/{operator}.png",
+                "CollectQC_Plots/coverage_deviation.png",
                 bbox_inches="tight",
             )
 
