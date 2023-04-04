@@ -105,16 +105,16 @@ class Metric:
                             ax=ax,
                             cbar_kws={"label": "Percent Concordance"},
                         )
-                        plt.grid(False)
-                        plt.tight_layout(pad=16)
-                        plt.title("Concordance among Samples", loc="left", fontsize=20)
-                        plt.xlabel("Normal Sample", labelpad=10)
-                        plt.ylabel("Tumor Samples", labelpad=10)
+                        ax.grid(False)
+                        fig.tight_layout(pad=16)
+                        ax.set_title("Concordance among Samples", loc="left", fontsize=20)
+                        ax.set_xlabel("Normal Sample", labelpad=10)
+                        ax.set_ylabel("Tumor Samples", labelpad=10)
                         plt.yticks(rotation=0)
 
                         if not os.path.exists("CollectQC_Plots"):
                             os.mkdir("CollectQC_Plots")
-                        plt.savefig(
+                        fig.savefig(
                             f"CollectQC_Plots/concordance_{patient_N_full}.png",
                             bbox_inches="tight",
                         )
@@ -279,14 +279,14 @@ class Metric:
 
         if operator == "coverage_deviation":
             ax.set_facecolor("#eeeeee")
-            plt.ylabel("Normalized Coverage", labelpad=10, fontsize=12)
-            plt.xlabel("GC Content", labelpad=10, fontsize=12)
-            plt.grid()
-            plt.tight_layout(pad=3)
-            plt.title("Normalized Coverage vs GC-Content", loc="left", fontsize=20)
+            ax.set_ylabel("Normalized Coverage", labelpad=10, fontsize=12)
+            ax.set_xlabel("GC Content", labelpad=10, fontsize=12)
+            ax.grid()
+            fig.tight_layout(pad=3)
+            ax.set_title("Normalized Coverage vs GC-Content", loc="left", fontsize=20)
             if not os.path.exists("CollectQC_Plots"):
                 os.mkdir("CollectQC_Plots")
-            plt.savefig(
+            fig.savefig(
                 "CollectQC_Plots/coverage_deviation.png",
                 bbox_inches="tight",
             )
@@ -396,15 +396,15 @@ class Metric:
             plt.axhline(y=operand["warn"], color="yellow", linestyle="-", zorder=2)
             plt.axhline(y=operand["error"], color="red", linestyle="-", zorder=2)
             ax.set_facecolor("#eeeeee")
-            plt.grid(zorder=0)
-            plt.tight_layout(pad=3)
-            plt.title("Mean Target Coverage", loc="left", fontsize=20)
-            plt.ylabel("Mean Coverage")
-            plt.xlabel("")
+            ax.grid(zorder=0)
+            fig.tight_layout(pad=3)
+            ax.set_title("Mean Target Coverage", loc="left", fontsize=20)
+            ax.set_ylabel("Mean Coverage")
+            ax.set_xlabel("")
 
             if not os.path.exists("CollectQC_Plots"):
                 os.mkdir("CollectQC_Plots")
-            plt.savefig("CollectQC_Plots/mean_target_coverage.png")
+            fig.savefig("CollectQC_Plots/mean_target_coverage.png")
 
         return hsmetrics_data
 
@@ -493,14 +493,14 @@ class Metric:
 
         if operator == "peak_analysis":
             ax.set_facecolor("#eeeeee")
-            plt.ylabel("")
-            plt.xlabel("Insert Size")
-            plt.grid()
-            plt.tight_layout(pad=3)
-            plt.title("Insert Size Distribution", loc="left", fontsize=20)
+            ax.set_ylabel("")
+            ax.set_xlabel("Insert Size")
+            ax.grid()
+            fig.tight_layout(pad=3)
+            ax.set_title("Insert Size Distribution", loc="left", fontsize=20)
             if not os.path.exists("CollectQC_Plots"):
                 os.mkdir("CollectQC_Plots")
-            plt.savefig("CollectQC_Plots/insert_size.png")
+            fig.savefig("CollectQC_Plots/insert_size.png")
 
         return insert_size_data
 
