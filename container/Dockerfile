@@ -5,15 +5,15 @@ ARG BRANCH=feature/multiqc_integration
 RUN apt-get clean \
     && apt-get update -qq \
     && apt-get install -y git \
-    && mkdir /usr/bin/app \
-    && cd /usr/bin/app \
+    && mkdir /usr/bin/collectqc \
+    && cd /usr/bin/collectqc \
     && git clone https://github.com/mskcc/collect-qc.git --branch ${BRANCH} \
     && pip install -r collect-qc/requirements.txt
 
 # Mount the repo onto a volume
-VOLUME /usr/bin/app/collect-qc
+VOLUME /usr/bin/collectqc/collect-qc
 
 # Change to the directory with the config.yaml and data files
-WORKDIR /usr/bin/app
+WORKDIR /usr/bin/collectqc
 
-CMD [ "python", "/usr/bin/app/collect-qc/scripts/main.py" ]
+CMD [ "python", "/usr/bin/collectqc/collect-qc/scripts/main.py" ]
