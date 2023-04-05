@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
 
-ARG BRANCH=feature/gcbias
+ARG BRANCH=feature/multiqc_integration
 
 RUN apt-get clean \
     && apt-get update -qq \
