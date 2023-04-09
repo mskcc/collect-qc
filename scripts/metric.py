@@ -244,7 +244,7 @@ class Metric:
                                         {
                                             "AutoStatus": cov_dev["AutoStatus"],
                                             "Sample": run_file.split(".")[0],
-                                            "Reason": f'The coverage deviation of {cov_dev["auc"]} is less than the {operand["threshold"]} threshold.',
+                                            "Reason": "",
                                         }
                                     )
                                 else:
