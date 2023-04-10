@@ -1,11 +1,12 @@
-from termcolor import colored
 from io import StringIO
 import matplotlib.pyplot as plt
-import re
-import seaborn as sns
+import numpy as np
 import os
 import pandas as pd
+import re
 from scipy.signal import find_peaks
+import seaborn as sns
+from termcolor import colored
 import yaml
 
 
@@ -104,16 +105,16 @@ class Metric:
                             ax=ax,
                             cbar_kws={"label": "Percent Concordance"},
                         )
-                        plt.grid(False)
-                        plt.tight_layout(pad=16)
-                        plt.title("Concordance among Samples", loc="left", fontsize=20)
-                        plt.xlabel("Normal Sample", labelpad=10)
-                        plt.ylabel("Tumor Samples", labelpad=10)
+                        ax.grid(False)
+                        fig.tight_layout(pad=16)
+                        ax.set_title("Concordance among Samples", loc="left", fontsize=20)
+                        ax.set_xlabel("Normal Sample", labelpad=10)
+                        ax.set_ylabel("Tumor Samples", labelpad=10)
                         plt.yticks(rotation=0)
 
                         if not os.path.exists("CollectQC_Plots"):
                             os.mkdir("CollectQC_Plots")
-                        plt.savefig(
+                        fig.savefig(
                             f"CollectQC_Plots/concordance_{patient_N_full}.png",
                             bbox_inches="tight",
                         )
@@ -166,6 +167,131 @@ class Metric:
                         )
 
         return concordance_data
+
+    def gcbias(self, operator, operand):
+        def gcBin(df):
+            gc_bin_list = np.arange(0.3, 0.9, 0.05)
+            gc_dict = {}
+            nc_dict = {}
+            first_bin = gc_bin_list[0]
+            for single_bin in gc_bin_list:
+                gc_dict[single_bin] = []
+                nc_dict[single_bin] = []
+            for gc, norm_coverage in zip(df["%gc"], df["normalized_coverage"]):
+                added_to_bin = False
+                for single_bin in np.flip(gc_bin_list):
+                    if gc >= single_bin and not added_to_bin:
+                        gc_dict[single_bin].append(gc)
+                        nc_dict[single_bin].append(norm_coverage)
+                        added_to_bin = True
+                if not added_to_bin:
+                    gc_dict[first_bin].append(gc)
+                    nc_dict[first_bin].append(norm_coverage)
+                gc_data = []
+            nc_data = []
+            for single_bin in gc_bin_list:
+                if gc_dict[single_bin] != [] and nc_dict[single_bin] != []:
+                    gc_data.append(np.mean(gc_dict[single_bin]))
+                    nc_data.append(np.mean(nc_dict[single_bin]))
+            gc_bin_data = {"%gc": gc_data, "normalized_coverage": nc_data}
+            gc_df = pd.DataFrame(gc_bin_data)
+            return gc_df
+
+        runs = os.listdir(self.qc_folder)
+        gcbias_data = []
+        fig, ax = plt.subplots(figsize=(20, 10), sharex=True, sharey=True)
+        for run in runs:
+            run_path = os.path.join(self.qc_folder, run)
+            for run_file in os.listdir(run_path):
+                if run_file.endswith(".hstmetrics"):
+                    gcbias_file = open(os.path.join(run_path, run_file))
+                    gcbias_df = pd.read_csv(gcbias_file, sep="\t")
+
+                    if operator == "coverage_deviation":
+                        if operand["columns"] and operand["threshold"]:
+                            if set(operand["columns"]) != {
+                                "gc",
+                                "normalized_coverage",
+                            }:
+                                return colored(
+                                    f'The "columns" parameter must be set to [gc, normalized_coverage].',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            else:
+                                binned = gcBin(gcbias_df)
+                                fun = Function("coverage_deviation", operand)
+                                fun_input = {
+                                    "df": binned,
+                                    "threshold": operand["threshold"],
+                                    "columns": ["%gc", "normalized_coverage"],
+                                }
+                                cov_dev = fun(fun_input)
+                                if cov_dev["AutoStatus"] == colored(
+                                    "FAIL", color="red", attrs=["bold"]
+                                ):
+                                    gcbias_data.append(
+                                        {
+                                            "AutoStatus": cov_dev["AutoStatus"],
+                                            "Sample": run_file.split(".")[0],
+                                            "Reason": f'The coverage deviation of {cov_dev["auc"]} is greater than the {operand["threshold"]} threshold.',
+                                        }
+                                    )
+                                elif cov_dev["AutoStatus"] == colored(
+                                    "PASS", color="green", attrs=["bold"]
+                                ):
+                                    gcbias_data.append(
+                                        {
+                                            "AutoStatus": cov_dev["AutoStatus"],
+                                            "Sample": run_file.split(".")[0],
+                                            "Reason": "",
+                                        }
+                                    )
+                                else:
+                                    return colored(
+                                        f'"Invalid result for "coverage_deviation".',
+                                        color="red",
+                                        attrs=["bold"],
+                                    )
+
+                                legend_label = (
+                                    f'{run_file.split(".")[0]}'
+                                )
+                                sns.lineplot(
+                                    data=binned,
+                                    x="%gc",
+                                    y="normalized_coverage",
+                                    ax=ax,
+                                    label=legend_label,
+                                )
+                        else:
+                            return colored(
+                                "The coverage_deviation function requires the following inputs: 'columns' and 'threshold'.",
+                                color="red",
+                                attrs=["bold"],
+                            )
+                    else:
+                        return colored(
+                            f'"{operator}" is not a valid function for "gcbias".',
+                            color="red",
+                            attrs=["bold"],
+                        )
+
+        if operator == "coverage_deviation":
+            ax.set_facecolor("#eeeeee")
+            ax.set_ylabel("Normalized Coverage", labelpad=10, fontsize=12)
+            ax.set_xlabel("GC Content", labelpad=10, fontsize=12)
+            ax.grid()
+            fig.tight_layout(pad=3)
+            ax.set_title("Normalized Coverage vs GC-Content", loc="left", fontsize=20)
+            if not os.path.exists("CollectQC_Plots"):
+                os.mkdir("CollectQC_Plots")
+            fig.savefig(
+                "CollectQC_Plots/coverage_deviation.png",
+                bbox_inches="tight",
+            )
+
+        return gcbias_data
 
     def hsmetrics(self, operator, operand):
         runs = os.listdir(self.qc_folder)
@@ -270,15 +396,15 @@ class Metric:
             plt.axhline(y=operand["warn"], color="yellow", linestyle="-", zorder=2)
             plt.axhline(y=operand["error"], color="red", linestyle="-", zorder=2)
             ax.set_facecolor("#eeeeee")
-            plt.grid(zorder=0)
-            plt.tight_layout(pad=3)
-            plt.title("Mean Target Coverage", loc="left", fontsize=20)
-            plt.ylabel("Mean Coverage")
-            plt.xlabel("")
+            ax.grid(zorder=0)
+            fig.tight_layout(pad=3)
+            ax.set_title("Mean Target Coverage", loc="left", fontsize=20)
+            ax.set_ylabel("Mean Coverage")
+            ax.set_xlabel("")
 
             if not os.path.exists("CollectQC_Plots"):
                 os.mkdir("CollectQC_Plots")
-            plt.savefig("CollectQC_Plots/mean_target_coverage.png")
+            fig.savefig("CollectQC_Plots/mean_target_coverage.png")
 
         return hsmetrics_data
 
@@ -300,71 +426,81 @@ class Metric:
                                 hist.append(line)
 
                         hist_data = pd.read_csv(StringIO("\n".join(hist)), sep="\t")
-                        if set(operand["columns"]) != {1, 2}:
+
+                        if operator == "peak_analysis":
+                            if set(operand["columns"]) != {1, 2}:
+                                return colored(
+                                    f"Incorrect columns specified in the config file.",
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            fun = Function(operator, {"columns": [1, 2]})
+                            tab_data = fun(hist_data)
+                            tab_data = tab_data.rename(
+                                {
+                                    tab_data.columns[0]: "insert_size",
+                                    tab_data.columns[1]: run_file.split(".")[0],
+                                },
+                                axis=1,
+                            )
+                            peak_data = tab_data.iloc[:, 1]
+
+                            max_peak_idx = peak_data.idxmax()
+                            max_peak = tab_data.iloc[:, 0].iloc[max_peak_idx]
+                            legend_label = f'{run_file.split(".")[0]} Peak: {max_peak}'
+                            sns.lineplot(
+                                data=tab_data,
+                                x=tab_data.columns[0],
+                                y=tab_data.columns[1],
+                                ax=ax,
+                                label=legend_label,
+                            )
+
+                            peaks = find_peaks(
+                                peak_data, height=max_peak / 3, distance=10, width=10
+                            )
+                            peak_amt = len(peaks[0])
+                            if peak_amt == 1:
+                                insert_size_data.append(
+                                    {
+                                        "AutoStatus": colored(
+                                            "PASS", color="green", attrs=["bold"]
+                                        ),
+                                        "Sample": run_file.split(".")[0],
+                                        "Peaks": peak_amt,
+                                        "Max Peak": max_peak,
+                                        "Reason": "",
+                                    }
+                                )
+                            else:
+                                insert_size_data.append(
+                                    {
+                                        "AutoStatus": colored(
+                                            "FAIL", color="red", attrs=["bold"]
+                                        ),
+                                        "Sample": run_file.split(".")[0],
+                                        "Peaks": peak_amt,
+                                        "Max Peak": max_peak,
+                                        "Reason": f"{peak_amt} peaks detected. Expected 1 peak.",
+                                    }
+                                )
+                        else:
                             return colored(
-                                f"Incorrect columns specified in the config file.",
+                                "Incorrect function specified in the config file.",
                                 color="red",
                                 attrs=["bold"],
                             )
-                        fun = Function(operator, {"columns": [1, 2]})
-                        tab_data = fun(hist_data)
-                        tab_data = tab_data.rename(
-                            {
-                                tab_data.columns[0]: "insert_size",
-                                tab_data.columns[1]: run_file.split(".")[0],
-                            },
-                            axis=1,
-                        )
-                        peak_data = tab_data.iloc[:, 1]
 
-                        max_peak_idx = peak_data.idxmax()
-                        max_peak = tab_data.iloc[:, 0].iloc[max_peak_idx]
-                        legend_label = f'{run_file.split(".")[0]} Peak: {max_peak}'
-                        sns.lineplot(
-                            data=tab_data,
-                            x=tab_data.columns[0],
-                            y=tab_data.columns[1],
-                            ax=ax,
-                            label=legend_label,
-                        )
-
-                        peaks = find_peaks(
-                            peak_data, height=max_peak / 3, distance=10, width=10
-                        )
-                        peak_amt = len(peaks[0])
-                        if peak_amt == 1:
-                            insert_size_data.append(
-                                {
-                                    "AutoStatus": colored(
-                                        "PASS", color="green", attrs=["bold"]
-                                    ),
-                                    "Sample": run_file.split(".")[0],
-                                    "Peaks": peak_amt,
-                                    "Max Peak": max_peak,
-                                    "Reason": "",
-                                }
-                            )
-                        else:
-                            insert_size_data.append(
-                                {
-                                    "AutoStatus": colored(
-                                        "FAIL", color="red", attrs=["bold"]
-                                    ),
-                                    "Sample": run_file.split(".")[0],
-                                    "Peaks": peak_amt,
-                                    "Max Peak": max_peak,
-                                    "Reason": f"{peak_amt} peaks detected. Expected 1 peak.",
-                                }
-                            )
-        ax.set_facecolor("#eeeeee")
-        plt.ylabel("")
-        plt.xlabel("Insert Size")
-        plt.grid()
-        plt.tight_layout(pad=3)
-        plt.title("Insert Size Distribution", loc="left", fontsize=20)
-        if not os.path.exists("CollectQC_Plots"):
-            os.mkdir("CollectQC_Plots")
-        plt.savefig("CollectQC_Plots/insert_size.png")
+        if operator == "peak_analysis":
+            ax.set_facecolor("#eeeeee")
+            ax.set_ylabel("")
+            ax.set_xlabel("Insert Size")
+            ax.grid()
+            fig.tight_layout(pad=3)
+            ax.set_title("Insert Size Distribution", loc="left", fontsize=20)
+            if not os.path.exists("CollectQC_Plots"):
+                os.mkdir("CollectQC_Plots")
+            fig.savefig("CollectQC_Plots/insert_size.png")
 
         return insert_size_data
 
@@ -375,18 +511,35 @@ class Function:
         self.operand = operand
 
     def __call__(self, data):
-        if self.operator == "peak_analysis":
-            return self.peak_analysis(data)
-        elif self.operator == "mean_target_coverage":
-            return self.mean_target_coverage(data)
+        if self.operator == "coverage_deviation":
+            return self.coverage_deviation(data)
         elif self.operator == "match_sample_matrix":
             return self.match_sample_matrix(data)
+        elif self.operator == "mean_target_coverage":
+            return self.mean_target_coverage(data)
+        elif self.operator == "peak_analysis":
+            return self.peak_analysis(data)
         else:
             return colored(
                 f"{self.operator} is not an available function.",
                 color="red",
                 attrs=["bold"],
             )
+
+    def coverage_deviation(self, data):
+        df = data["df"]
+
+        auc = np.trapz(x=df.loc[:, "%gc"], y=df.loc[:, "normalized_coverage"])
+        if auc > data["threshold"]:
+            return {
+                "AutoStatus": colored("FAIL", color="red", attrs=["bold"]),
+                "auc": round(auc, 3),
+            }
+        else:
+            return {
+                "AutoStatus": colored("PASS", color="green", attrs=["bold"]),
+                "auc": round(auc, 3),
+            }
 
     def match_sample_matrix(self, data):
         match_data = data["match"]
