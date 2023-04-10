@@ -1,4 +1,5 @@
 from metric import Metric
+import multiqc
 from tabulate import tabulate
 from termcolor import colored
 
@@ -209,10 +210,11 @@ class CollectQC:
 
             f.write("\nconfig.yaml \n")
             f.write(open("config.yaml").read())
-
+            
         return
 
 
 if __name__ == "__main__":
     qc = CollectQC()
     qc.process_metric()
+    multiqc.run(qc.metric.qc_folder)
