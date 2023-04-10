@@ -67,6 +67,37 @@ class CollectQC:
                     else:
                         print(hsmetrics_results)
                     print("\n")
+                elif file_specifier == "concordance":
+                    print(colored("Concordance", attrs=["bold"]))
+                    concord_results = metric.concordance(
+                        operator=operator, operand=operand
+                    )
+                    if type(concord_results) is list:
+                        if len(concord_results) == 0:
+                            print(
+                                colored(
+                                    "PASS",
+                                    color="green",
+                                    attrs=["bold"],
+                                )
+                            )
+                            print("\n")
+                            break
+                        header = concord_results[0].keys()
+                        rows = [
+                            concord_sample_data.values()
+                            for concord_sample_data in concord_results
+                        ]
+                        print(tabulate(rows, header, tablefmt="simple"))
+                        results_ops = {
+                            "metric": "concordance",
+                            "operator": operator,
+                            "results": concord_results,
+                        }
+                        results.append(results_ops)
+                    else:
+                        print(concord_results)
+                    print("\n")
                 else:
                     print(
                         colored(

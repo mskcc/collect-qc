@@ -1,6 +1,7 @@
 from termcolor import colored
 from io import StringIO
 import matplotlib.pyplot as plt
+import re
 import seaborn as sns
 import os
 import pandas as pd
@@ -18,6 +19,153 @@ class Metric:
             self.config = yaml.safe_load(f)
         self.qc_folder = os.path.join(os.getcwd(), self.config["qc_folder"])
         return self.config
+
+    def concordance(self, operator, operand):
+        runs = os.listdir(self.qc_folder)
+        concordance_data = []
+        for run in runs:
+            run_path = os.path.join(self.qc_folder, run)
+            for run_file in os.listdir(run_path):
+                if run_file.endswith("_concordance.txt"):
+                    concord_file = open(os.path.join(run_path, run_file))
+                    concord_data = pd.read_csv(concord_file, sep="\t")
+                    patient_N_full = concord_data.loc[:, "concordance"].iloc[0]
+                    patient_N = re.search(r"Patient_(\d+)", patient_N_full).group()
+                    filter_match_data = concord_data.filter(regex=patient_N)
+                    match_data = pd.concat(
+                        [concord_data.iloc[:, 0], filter_match_data], axis=1
+                    )
+                    unmatch_data = concord_data.filter(
+                        regex="^((?!" + patient_N + ").)*$"
+                    )
+
+                    if operator == "match_sample_matrix":
+                        # Error handling for missing operand keys and the threshold values
+                        if operand.keys() == {
+                            "match_error_lt",
+                            "match_warn_lt",
+                            "unmatch_warn_gt",
+                            "unmatch_error_gt",
+                        }:
+                            if operand["match_error_lt"] == operand["match_warn_lt"]:
+                                return colored(
+                                    '"match_error_lt" and "match_warn_lt" cannot be the same value."',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            elif operand["match_error_lt"] > operand["match_warn_lt"]:
+                                return colored(
+                                    '"match_error_lt" must be less than "match_warn_lt".',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            elif (
+                                operand["unmatch_warn_gt"]
+                                == operand["unmatch_error_gt"]
+                            ):
+                                return colored(
+                                    '"unmatch_warn_gt" and "unmatch_error_gt" cannot be the same value."',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                            elif (
+                                operand["unmatch_warn_gt"] > operand["unmatch_error_gt"]
+                            ):
+                                return colored(
+                                    '"unmatch_warn_gt" must be greater than "unmatch_error_gt".',
+                                    color="red",
+                                    attrs=["bold"],
+                                )
+                        else:
+                            return colored(
+                                "The match_sample_matrix function requires the following thresholds: 'match_error_lt', 'match_warn_lt', 'unmatch_warn_gt', and 'unmatch_error_gt'.",
+                                color="red",
+                                attrs=["bold"],
+                            )
+
+                        # Call the match_sample_matrix function
+                        fun = Function("match_sample_matrix", operand)
+                        data = {"match": match_data, "unmatch": unmatch_data}
+                        (
+                            match_error_cols,
+                            match_warn_cols,
+                            unmatch_error_cols,
+                            unmatch_warn_cols,
+                        ) = fun(data)
+
+                        # Plot a heatmap of concord_data
+                        fig, ax = plt.subplots(
+                            figsize=(20, 10), sharex=True, sharey=True
+                        )
+                        concord_data.set_index("concordance", inplace=True)
+                        sns.heatmap(
+                            concord_data.transpose(),
+                            cmap="RdYlGn",
+                            ax=ax,
+                            cbar_kws={"label": "Percent Concordance"},
+                        )
+                        plt.grid(False)
+                        plt.tight_layout(pad=16)
+                        plt.title("Concordance among Samples", loc="left", fontsize=20)
+                        plt.xlabel("Normal Sample", labelpad=10)
+                        plt.ylabel("Tumor Samples", labelpad=10)
+                        plt.yticks(rotation=0)
+
+                        if not os.path.exists("CollectQC_Plots"):
+                            os.mkdir("CollectQC_Plots")
+                        plt.savefig(
+                            f"CollectQC_Plots/concordance_{patient_N_full}.png",
+                            bbox_inches="tight",
+                        )
+
+                        if match_warn_cols:
+                            concordance_data.append(
+                                {
+                                    "AutoStatus": colored(
+                                        "WARNING", color="yellow", attrs=["bold"]
+                                    ),
+                                    "Sample": patient_N_full,
+                                    "Reason": f"{', '.join(match_warn_cols)} fell within the {operand['match_error_lt']} and {operand['match_warn_lt']} match thresholds.",
+                                }
+                            )
+                        if match_error_cols:
+                            concordance_data.append(
+                                {
+                                    "AutoStatus": colored(
+                                        "ERROR", color="red", attrs=["bold"]
+                                    ),
+                                    "Sample": patient_N_full,
+                                    "Reason": f"{', '.join(match_error_cols)} fell below the {operand['match_error_lt']} match threshold.",
+                                }
+                            )
+                        if unmatch_warn_cols:
+                            concordance_data.append(
+                                {
+                                    "AutoStatus": colored(
+                                        "WARNING", color="yellow", attrs=["bold"]
+                                    ),
+                                    "Sample": patient_N_full,
+                                    "Reason": f"{', '.join(unmatch_warn_cols)} fell within the {operand['unmatch_warn_gt']} and {operand['unmatch_error_gt']} mismatch thresholds.",
+                                }
+                            )
+                        if unmatch_error_cols:
+                            concordance_data.append(
+                                {
+                                    "AutoStatus": colored(
+                                        "ERROR", color="red", attrs=["bold"]
+                                    ),
+                                    "Sample": patient_N_full,
+                                    "Reason": f"{', '.join(unmatch_error_cols)} exceeded the {operand['unmatch_error_gt']} mismatch threshold.",
+                                }
+                            )
+                    else:
+                        return colored(
+                            f'"{operator}" is not a valid operator for "concordance".',
+                            color="red",
+                            attrs=["bold"],
+                        )
+
+        return concordance_data
 
     def hsmetrics(self, operator, operand):
         runs = os.listdir(self.qc_folder)
@@ -231,12 +379,56 @@ class Function:
             return self.peak_analysis(data)
         elif self.operator == "mean_target_coverage":
             return self.mean_target_coverage(data)
+        elif self.operator == "match_sample_matrix":
+            return self.match_sample_matrix(data)
         else:
             return colored(
                 f"{self.operator} is not an available function.",
                 color="red",
                 attrs=["bold"],
             )
+
+    def match_sample_matrix(self, data):
+        match_data = data["match"]
+        unmatch_data = data["unmatch"]
+        match_warn = self.operand["match_warn_lt"]
+        match_error = self.operand["match_error_lt"]
+        unmatch_warn = self.operand["unmatch_warn_gt"]
+        unmatch_error = self.operand["unmatch_error_gt"]
+
+        match_error_cols = (
+            match_data.iloc[:, 1:]
+            .where(match_data.iloc[:, 1:] < match_error)
+            .dropna(axis=1)
+            .columns.tolist()
+        )
+        match_warn_cols = (
+            match_data.iloc[:, 1:]
+            .where(
+                (match_data.iloc[:, 1:] < match_warn)
+                & (match_data.iloc[:, 1:] >= match_error)
+            )
+            .dropna(axis=1)
+            .columns.tolist()
+        )
+
+        unmatch_error_cols = (
+            unmatch_data.iloc[:, 1:]
+            .where(unmatch_data.iloc[:, 1:] >= unmatch_error)
+            .dropna(axis=1)
+            .columns.tolist()
+        )
+        unmatch_warn_cols = (
+            unmatch_data.iloc[:, 1:]
+            .where(
+                (unmatch_data.iloc[:, 1:] >= unmatch_warn)
+                & (unmatch_data.iloc[:, 1:] < unmatch_error)
+            )
+            .dropna(axis=1)
+            .columns.tolist()
+        )
+
+        return match_error_cols, match_warn_cols, unmatch_error_cols, unmatch_warn_cols
 
     def mean_target_coverage(self, data):
         warn = self.operand["warn"]
