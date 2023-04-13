@@ -1,6 +1,6 @@
 FROM python:3.8-slim-buster
 
-ARG BRANCH=feature/multiqc_integration
+ARG BRANCH=main
 
 RUN apt-get clean \
     && apt-get update -qq \
