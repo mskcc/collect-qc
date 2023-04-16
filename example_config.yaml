@@ -1,3 +1,4 @@
+# qc_folder is the name of the folder where the bioinformatics data for analysis is stored.
 qc_folder: "collect-qc-test-data"
 
 metrics:
