@@ -5,6 +5,7 @@ Collect QC (CQ) is pipeline agnostic tool to merge QC metrics. Collect QC search
 ## Installation Guide
 
 **Docker**
+
 Build the Docker image from the container directory of the repository (CONTAINER_NAME is the name you assign to the container):
 
 1. `cd collect-qc/container`
@@ -26,9 +27,10 @@ Build the Docker image from the container directory of the repository (CONTAINER
 
 ## How to run Collect QC
 
-Ensure you have the bioinformatics metrics data and the config.yaml ([example_config.yaml](https://github.com/mskcc/collect-qc/blob/main/example_config.yaml)) file in your directory.
+Ensure you have the bioinformatics metrics data and the config.yaml ([example_config.yaml](example_config.yaml)) file in your directory.
 
 **Docker**
+
 Run the Docker image with: `` docker run -it -v `pwd`:/usr/bin/collectqc/ {CONTAINER NAME} ``
 
 **Python Virtual Environment**
@@ -39,13 +41,13 @@ Run the Docker image with: `` docker run -it -v `pwd`:/usr/bin/collectqc/ {CONTA
 
 ## Modules
 
-Each module will be implemented based on the inputs in the config.yaml ([example_config.yaml](https://github.com/mskcc/collect-qc/blob/main/example_config.yaml)) using the following format:
+Each module will be implemented based on the inputs in the config.yaml ([example_config.yaml](example_config.yaml)) using the following format:
 
 ```
-    module:
-        function:
-            function_name:
-                ...
+  module:
+    function:
+      function_name:
+        ...
 ```
 
 ### Picard Insert Size
@@ -54,9 +56,9 @@ Each module will be implemented based on the inputs in the config.yaml ([example
 
   ```
   insert_size:
-      function:
+    function:
       peak_analysis:
-          columns: [1, 2]
+        columns: [1, 2]
   ```
 
   Results:
@@ -74,11 +76,11 @@ Each module will be implemented based on the inputs in the config.yaml ([example
 
   ```
   hsmetrics:
-      function:
+    function:
       threshold:
-          column: mean_target_coverage
-          warn: 700
-          error: 500
+        column: mean_target_coverage
+        warn: 700
+        error: 500
   ```
 
   Results:
@@ -87,19 +89,33 @@ Each module will be implemented based on the inputs in the config.yaml ([example
   - WARNING: the sample's value falls under the WARNING threshold and above the ERROR threshold.
   - ERROR: the sample's value falls under the ERROR threshold.
 
+  Plot Output:
+
+  - Bar graph of the mean target coverages of each sample and the warning and error threshold lines.
+
 ### Concordance
 
-- **Match Sample Matrix**: Determines if there are sample mix-ups between patients.
+- **Match Sample Matrix**: Determines if there are sample mix-ups between patients. The "match" threshold corresponds to tumor samples with the same patient as the normal sample, and the "unmatch" threshold corresponds to tumor samples with a different patient from the normal sample.
 
   ```
   concordance:
-      function:
+    function:
       match_sample_matrix:
-          match_error_lt: 49
-          match_warn_lt: 90
-          unmatch_warn_gt: 43.41
-          unmatch_error_gt: 60
+        match_error_lt: 49
+        match_warn_lt: 90
+        unmatch_warn_gt: 43.41
+        unmatch_error_gt: 60
   ```
+
+  Results:
+
+  - PASS: When there is a match between the normal sample and the tumor sample, and the value is greater than match_warn_lt, or when there is a mismatch between the normal sample and the tumor sample and the value is less than unmatch_warn_gt.
+  - WARNING: When the value falls within the match (match_error_lt and match_warn_lt) or unmatch (unmatch_warn_gt and unmatch_error_gt) thresholds.
+  - ERROR: When there is a match between the normal sample and the tumor sample and the value is less than match_error_lt, or when there is a mismatch between the normal sample and the tumor sample and the value is greater than or equal to unmatch_error_gt.
+
+  Plot Output:
+
+  - Heatmap plot of the concordance matrix with the normal sample and the tumor samples.
 
 ### Picard GC Bias
 
@@ -107,11 +123,20 @@ Each module will be implemented based on the inputs in the config.yaml ([example
 
   ```
   gcbias:
-      function:
+    function:
       coverage_deviation:
-          columns: [gc, normalized_coverage]
-          threshold: 0.6
+        columns: [gc, normalized_coverage]
+        threshold: 0.6
   ```
+
+  Results:
+
+  - PASS: The area under the curve of the normalized coverage vs. GC-content plot for the sample is less than the threshold.
+  - FAIL: The area under the curve of the normalized coverage vs. GC-content plot for the sample is greater than the threshold.
+
+  Plot Output:
+
+  - The Normalized Coverage vs. GC-content plot will be created with the GC-content binned in 5% intervals.
 
 ## Contibuting Guide
 
