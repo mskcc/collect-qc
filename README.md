@@ -148,7 +148,7 @@ Extracts data from files ending with .hstmetrics
 
 ## Integration with MultiQC
 
-[MultiQC](https://multiqc.info/) has been integrated with Collect QC using the [MultiQC python package](https://pypi.org/project/multiqc/). After running Collect QC, the MultiQC HTML report will be created. An example report [example_html_report.html](example_multiqc_report.html) has been provided in the repository for reference.
+[MultiQC](https://multiqc.info/) has been integrated with Collect QC using the [MultiQC python package](https://pypi.org/project/multiqc/). After running Collect QC, the MultiQC HTML report will be created (multiqc_report.html).
 
 ## Output of Collect QC
 
@@ -156,7 +156,7 @@ After running Collect QC, the following will appear in your working directory:
 
 - "CollectQC_Plots" folder containing plots (.png files) corresponding to each module output.
 - CollectQC_Summary.txt report consisting of the result status (PASSED, WARNING, or FAILED), tables listing the samples that have a WARNING or FAILED status, and the reason why each sample was assigned that status. The contents of the config.yaml file are located at the end of the report for reference.
-- MultiQC HTML report (multiqc_report.html) consisting of data analytics provided by MultiQC. An example report [example_html_report.html](example_multiqc_report.html) has been provided in the repository for reference.
+- MultiQC HTML report (multiqc_report.html) consisting of data analytics provided by MultiQC.
 
 ## Contibuting Guide
 
