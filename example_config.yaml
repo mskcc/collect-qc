@@ -1,0 +1,26 @@
+# qc_folder is the name of the folder where the bioinformatics data for analysis is stored.
+qc_folder: "collect-qc-test-data"
+
+metrics:
+  gcbias:
+    function:
+      coverage_deviation:
+        columns: [gc, normalized_coverage]
+        threshold: 0.6
+  concordance:
+    function:
+      match_sample_matrix:
+        match_error_lt: 49
+        match_warn_lt: 90
+        unmatch_warn_gt: 43.41
+        unmatch_error_gt: 60
+  hsmetrics:
+    function:
+      threshold:
+        column: mean_target_coverage
+        warn: 700
+        error: 500
+  insert_size:
+    function:
+      peak_analysis:
+        columns: [1, 2]
