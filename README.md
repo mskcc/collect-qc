@@ -4,26 +4,59 @@ Collect QC (CQ) is pipeline agnostic tool to merge QC metrics. Collect QC search
 
 ## Installation Guide
 
+Clone the repository:
+
+```
+git clone https://github.com/mskcc/collect-qc.git
+```
+
 - **Docker**
 
   Build the Docker image from the container directory of the repository (CONTAINER_NAME is the name you assign to the container):
 
-  1. `cd collect-qc/container`
-  2. `docker build -t CONTAINER_NAME .`
+  1. Navigate to the directory of the repository with the Dockerfile:
+     ```
+     cd collect-qc/container
+     ```
+  2. Build the Docker image:
+     ```
+     docker build -t CONTAINER_NAME .
+     ```
 
 - **Python Virtual Environment**
 
-  1. Install [virtualenv](https://virtualenv.pypa.io/)
-     `python3 -m pip install --user virtualenv`
-  2. Create a virtual environment (ENV_NAME is the name you assign to the virtual environment)
-     `python3 -m venv ENV_NAME`
+  1. Install [virtualenv](https://virtualenv.pypa.io/):
+
+     ```
+     python3 -m pip install --user virtualenv
+     ```
+
+  2. Create a virtual environment (ENV_NAME is the name you assign to the virtual environment):
+
+     ```
+     python3 -m venv ENV_NAME
+     ```
+
   3. Install the required Python packages for Collect QC
-     `cd collect-qc`
-     `pip install -r requirements.txt`
-  4. Activate the virtual environment
-     `source ENV_NAME/bin/activate`
-  5. Exiting the virtual environment
-     `deactivate`
+     - Navigate to the repository directory:
+     ```
+     cd collect-qc
+     ```
+     - Install the required Python packages:
+     ```
+     pip install -r requirements.txt
+     ```
+  4. Activate the virtual environment:
+
+     ```
+     source ENV_NAME/bin/activate
+     ```
+
+  5. Exit the virtual environment:
+
+     ```
+     deactivate
+     ```
 
 ## How to run Collect QC
 
@@ -31,13 +64,25 @@ Ensure you have the bioinformatics metrics data and the config.yaml ([example_co
 
 - **Docker**
 
-  Run the Docker image with: `` docker run -it -v `pwd`:/usr/bin/collectqc/ {CONTAINER NAME} ``
+  Run the Docker image with:
+
+  ```
+  docker run -it -v `pwd`:/usr/bin/collectqc/ {CONTAINER NAME}
+  ```
 
 - **Python Virtual Environment**
 
   1. Activate your virtual environment.
-  2. `cd collect-qc`
-  3. `python3 scripts/main.py`
+  2. Navigate to the repository directory:
+
+     ```
+     cd collect-qc
+     ```
+
+  3. Run the main Python script:
+     ```
+     python3 scripts/main.py
+     ```
 
 ## Modules
 
