@@ -121,7 +121,7 @@ Extracts data from files ending with .ismetrics
 
 Extracts data from files ending with .hsmetrics
 
-- **Mean Target Coverage**: Determines if the mean target coverage from each sample falls under the warning or error thresholds.
+- **Thresholding**: Determines if the mean target coverage from each sample falls under the warning or error thresholds.
 
   ```
   hsmetrics:
